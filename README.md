@@ -1,5 +1,5 @@
 ```bash
-# readme文件中描述编译、执行、测试的方法。
+# readme
 # 编译项目 cmake
 mkdir build && cd build && cmake .. && make && cd ..
 # 运行项目
