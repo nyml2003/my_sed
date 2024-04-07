@@ -15,9 +15,17 @@ BISON_TARGET(parser src/parser.y ${CMAKE_BINARY_DIR}/parser.cpp COMPILE_FLAGS "-
 FLEX_TARGET(scanner src/scanner.l ${CMAKE_BINARY_DIR}/scanner.cpp)
 ADD_FLEX_BISON_DEPENDENCY(scanner parser)
 
+# llvm config
+set(LLVM_DIR "/usr/lib/llvm-14/cmake")
+find_package(LLVM REQUIRED CONFIG)
+include_directories(${LLVM_INCLUDE_DIRS})
+include_directories("/usr/lib/llvm-14/include")
+separate_arguments(LLVM_DEFINITIONS NATIVE_COMMAND ${LLVM_DEFINITIONS})
+add_definitions(${LLVM_DEFINITIONS})
+
 include_directories(${CMAKE_BINARY_DIR})
 include_directories(${SED_INCLUDE_DIR})
-add_executable(sed ${SED_MAIN_FILE} ${SED_SOURCE_FILES} ${SED_HEADER_FILES} ${BISON_parser_OUTPUTS} ${FLEX_scanner_OUTPUTS})
+add_executable(sed ${SED_MAIN_FILE} ${SED_SOURCE_FILES} ${SED_HEADER_FILES} ${BISON_parser_OUTPUTS} ${FLEX_scanner_OUTPUTS}  ${llvm_libs})
 target_link_libraries(sed "-lfl")
 
 enable_testing()

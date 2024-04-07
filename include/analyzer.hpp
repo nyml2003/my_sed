@@ -1,7 +1,7 @@
 #ifndef SED_ANALYZER_HPP
 #define SED_ANALYZER_HPP
 
-namespace SED::Analyzer
+namespace SED
 {
     class Analyzable
     {

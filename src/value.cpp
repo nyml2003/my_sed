@@ -717,7 +717,8 @@ namespace SED::AST
         return DirectRightValue::_eq_(other);
     }
 
-    ValueType Float32::_eq_type_(ValueType other){
+    ValueType Float32::_eq_type_(ValueType other)
+    {
         if (other == ValueType::FLOAT_32)
         {
             return ValueType::BOOLEAN;
@@ -738,7 +739,8 @@ namespace SED::AST
         return DirectRightValue::_ne_(other);
     }
 
-    ValueType Float32::_ne_type_(ValueType other){
+    ValueType Float32::_ne_type_(ValueType other)
+    {
         if (other == ValueType::FLOAT_32)
         {
             return ValueType::BOOLEAN;
@@ -759,7 +761,8 @@ namespace SED::AST
         return DirectRightValue::_lt_(other);
     }
 
-    ValueType Float32::_lt_type_(ValueType other){
+    ValueType Float32::_lt_type_(ValueType other)
+    {
         if (other == ValueType::FLOAT_32)
         {
             return ValueType::BOOLEAN;
@@ -780,7 +783,8 @@ namespace SED::AST
         return DirectRightValue::_le_(other);
     }
 
-    ValueType Float32::_le_type_(ValueType other){
+    ValueType Float32::_le_type_(ValueType other)
+    {
         if (other == ValueType::FLOAT_32)
         {
             return ValueType::BOOLEAN;
@@ -801,7 +805,8 @@ namespace SED::AST
         return DirectRightValue::_gt_(other);
     }
 
-    ValueType Float32::_gt_type_(ValueType other){
+    ValueType Float32::_gt_type_(ValueType other)
+    {
         if (other == ValueType::FLOAT_32)
         {
             return ValueType::BOOLEAN;
@@ -822,7 +827,8 @@ namespace SED::AST
         return DirectRightValue::_ge_(other);
     }
 
-    ValueType Float32::_ge_type_(ValueType other){
+    ValueType Float32::_ge_type_(ValueType other)
+    {
         if (other == ValueType::FLOAT_32)
         {
             return ValueType::BOOLEAN;
@@ -897,7 +903,8 @@ namespace SED::AST
         return DirectRightValue::_and_(other);
     }
 
-    ValueType Boolean::_and_type_(ValueType other){
+    ValueType Boolean::_and_type_(ValueType other)
+    {
         if (other == ValueType::BOOLEAN)
         {
             return ValueType::BOOLEAN;
@@ -918,7 +925,8 @@ namespace SED::AST
         return DirectRightValue::_or_(other);
     }
 
-    ValueType Boolean::_or_type_(ValueType other){
+    ValueType Boolean::_or_type_(ValueType other)
+    {
         if (other == ValueType::BOOLEAN)
         {
             return ValueType::BOOLEAN;
@@ -939,7 +947,8 @@ namespace SED::AST
         return DirectRightValue::_eq_(other);
     }
 
-    ValueType Boolean::_eq_type_(ValueType other){
+    ValueType Boolean::_eq_type_(ValueType other)
+    {
         if (other == ValueType::BOOLEAN)
         {
             return ValueType::BOOLEAN;
@@ -960,7 +969,8 @@ namespace SED::AST
         return DirectRightValue::_ne_(other);
     }
 
-    ValueType Boolean::_ne_type_(ValueType other){
+    ValueType Boolean::_ne_type_(ValueType other)
+    {
         if (other == ValueType::BOOLEAN)
         {
             return ValueType::BOOLEAN;
@@ -973,7 +983,8 @@ namespace SED::AST
         return (new Boolean())->setValue(!value);
     }
 
-    ValueType Boolean::_not_type_(){
+    ValueType Boolean::_not_type_()
+    {
         return ValueType::BOOLEAN;
     }
 
@@ -1023,7 +1034,8 @@ namespace SED::AST
         }
         return DirectRightValue::_add_(other);
     }
-    ValueType Pointer::_add_type_(ValueType other){
+    ValueType Pointer::_add_type_(ValueType other)
+    {
         if (other == ValueType::INT_32)
         {
             return ValueType::POINTER;
@@ -1031,8 +1043,8 @@ namespace SED::AST
         return DirectRightValue::_add_type_(other);
     }
 
-        DirectRightValue *
-        Pointer::_sub_(RightValue *other)
+    DirectRightValue *
+    Pointer::_sub_(RightValue *other)
     {
         if (other->isDirect())
         {
@@ -1049,7 +1061,8 @@ namespace SED::AST
         return DirectRightValue::_sub_(other);
     }
 
-    ValueType Pointer::_sub_type_(ValueType other){
+    ValueType Pointer::_sub_type_(ValueType other)
+    {
         if (other == ValueType::INT_32)
         {
             return ValueType::POINTER;
@@ -1074,7 +1087,8 @@ namespace SED::AST
         return DirectRightValue::_eq_(other);
     }
 
-    ValueType Pointer::_eq_type_(ValueType other){
+    ValueType Pointer::_eq_type_(ValueType other)
+    {
         if (other == ValueType::POINTER)
         {
             return ValueType::BOOLEAN;
@@ -1095,7 +1109,8 @@ namespace SED::AST
         return DirectRightValue::_ne_(other);
     }
 
-    ValueType Pointer::_ne_type_(ValueType other){
+    ValueType Pointer::_ne_type_(ValueType other)
+    {
         if (other == ValueType::POINTER)
         {
             return ValueType::BOOLEAN;
@@ -1116,7 +1131,8 @@ namespace SED::AST
         return DirectRightValue::_lt_(other);
     }
 
-    ValueType Pointer::_lt_type_(ValueType other){
+    ValueType Pointer::_lt_type_(ValueType other)
+    {
         if (other == ValueType::POINTER)
         {
             return ValueType::BOOLEAN;
@@ -1137,7 +1153,8 @@ namespace SED::AST
         return DirectRightValue::_le_(other);
     }
 
-    ValueType Pointer::_le_type_(ValueType other){
+    ValueType Pointer::_le_type_(ValueType other)
+    {
         if (other == ValueType::POINTER)
         {
             return ValueType::BOOLEAN;
@@ -1158,7 +1175,8 @@ namespace SED::AST
         return DirectRightValue::_gt_(other);
     }
 
-    ValueType Pointer::_gt_type_(ValueType other){
+    ValueType Pointer::_gt_type_(ValueType other)
+    {
         if (other == ValueType::POINTER)
         {
             return ValueType::BOOLEAN;
@@ -1179,7 +1197,8 @@ namespace SED::AST
         return DirectRightValue::_ge_(other);
     }
 
-    ValueType Pointer::_ge_type_(ValueType other){
+    ValueType Pointer::_ge_type_(ValueType other)
+    {
         if (other == ValueType::POINTER)
         {
             return ValueType::BOOLEAN;
@@ -1194,7 +1213,8 @@ namespace SED::AST
         return this->directify()->_add_(other);
     }
 
-    ValueType IndirectRightValue::_add_type_(ValueType other){
+    ValueType IndirectRightValue::_add_type_(ValueType other)
+    {
         return DirectRightValueInitializer::get(getValueType())->_add_type_(other);
     }
 
@@ -1203,7 +1223,8 @@ namespace SED::AST
         return this->directify()->_sub_(other);
     }
 
-    ValueType IndirectRightValue::_sub_type_(ValueType other){
+    ValueType IndirectRightValue::_sub_type_(ValueType other)
+    {
         return DirectRightValueInitializer::get(getValueType())->_sub_type_(other);
     }
 
@@ -1212,7 +1233,8 @@ namespace SED::AST
         return this->directify()->_mul_(other);
     }
 
-    ValueType IndirectRightValue::_mul_type_(ValueType other){
+    ValueType IndirectRightValue::_mul_type_(ValueType other)
+    {
         return DirectRightValueInitializer::get(getValueType())->_mul_type_(other);
     }
 
@@ -1221,7 +1243,8 @@ namespace SED::AST
         return this->directify()->_div_(other);
     }
 
-    ValueType IndirectRightValue::_div_type_(ValueType other){
+    ValueType IndirectRightValue::_div_type_(ValueType other)
+    {
         return DirectRightValueInitializer::get(getValueType())->_div_type_(other);
     }
 
@@ -1230,7 +1253,8 @@ namespace SED::AST
         return this->directify()->_mod_(other);
     }
 
-    ValueType IndirectRightValue::_mod_type_(ValueType other){
+    ValueType IndirectRightValue::_mod_type_(ValueType other)
+    {
         return DirectRightValueInitializer::get(getValueType())->_mod_type_(other);
     }
 
@@ -1239,7 +1263,8 @@ namespace SED::AST
         return this->directify()->_and_(other);
     }
 
-    ValueType IndirectRightValue::_and_type_(ValueType other){
+    ValueType IndirectRightValue::_and_type_(ValueType other)
+    {
         return DirectRightValueInitializer::get(getValueType())->_and_type_(other);
     }
 
@@ -1248,7 +1273,8 @@ namespace SED::AST
         return this->directify()->_or_(other);
     }
 
-    ValueType IndirectRightValue::_or_type_(ValueType other){
+    ValueType IndirectRightValue::_or_type_(ValueType other)
+    {
         return DirectRightValueInitializer::get(getValueType())->_or_type_(other);
     }
 
@@ -1257,7 +1283,8 @@ namespace SED::AST
         return this->directify()->_eq_(other);
     }
 
-    ValueType IndirectRightValue::_eq_type_(ValueType other){
+    ValueType IndirectRightValue::_eq_type_(ValueType other)
+    {
         return DirectRightValueInitializer::get(getValueType())->_eq_type_(other);
     }
 
@@ -1266,7 +1293,8 @@ namespace SED::AST
         return this->directify()->_ne_(other);
     }
 
-    ValueType IndirectRightValue::_ne_type_(ValueType other){
+    ValueType IndirectRightValue::_ne_type_(ValueType other)
+    {
         return DirectRightValueInitializer::get(getValueType())->_ne_type_(other);
     }
 
@@ -1275,7 +1303,8 @@ namespace SED::AST
         return this->directify()->_lt_(other);
     }
 
-    ValueType IndirectRightValue::_lt_type_(ValueType other){
+    ValueType IndirectRightValue::_lt_type_(ValueType other)
+    {
         return DirectRightValueInitializer::get(getValueType())->_lt_type_(other);
     }
 
@@ -1284,7 +1313,8 @@ namespace SED::AST
         return this->directify()->_le_(other);
     }
 
-    ValueType IndirectRightValue::_le_type_(ValueType other){
+    ValueType IndirectRightValue::_le_type_(ValueType other)
+    {
         return DirectRightValueInitializer::get(getValueType())->_le_type_(other);
     }
 
@@ -1293,7 +1323,8 @@ namespace SED::AST
         return this->directify()->_gt_(other);
     }
 
-    ValueType IndirectRightValue::_gt_type_(ValueType other){
+    ValueType IndirectRightValue::_gt_type_(ValueType other)
+    {
         return DirectRightValueInitializer::get(getValueType())->_gt_type_(other);
     }
 
@@ -1302,7 +1333,8 @@ namespace SED::AST
         return this->directify()->_ge_(other);
     }
 
-    ValueType IndirectRightValue::_ge_type_(ValueType other){
+    ValueType IndirectRightValue::_ge_type_(ValueType other)
+    {
         return DirectRightValueInitializer::get(getValueType())->_ge_type_(other);
     }
 
@@ -1395,87 +1427,73 @@ namespace SED::AST
         putEdge(binary_id, op_id, "op");
     }
 
-    
-
     DirectRightValue *Binary::directify()
     {
-        try
+        switch (op)
         {
-            switch (op)
-            {
-            case Operator::ADD:
-                return left->_add_(right);
-            case Operator::SUB:
-                return left->_sub_(right);
-            case Operator::MUL:
-                return left->_mul_(right);
-            case Operator::DIV:
-                return left->_div_(right);
-            case Operator::MOD:
-                return left->_mod_(right);
-            case Operator::AND:
-                return left->_and_(right);
-            case Operator::OR:
-                return left->_or_(right);
-            case Operator::EQ:
-                return left->_eq_(right);
-            case Operator::NE:
-                return left->_ne_(right);
-            case Operator::LT:
-                return left->_lt_(right);
-            case Operator::LE:
-                return left->_le_(right);
-            case Operator::GT:
-                return left->_gt_(right);
-            case Operator::GE:
-                return left->_ge_(right);
-            default:
-                throw std::runtime_error("Invalid operator");
-            }
-        }
-        catch (std::runtime_error &e)
-        {
-            std::cerr << e.what() << std::endl;
-            exit(1);
+        case Operator::ADD:
+            return left->_add_(right);
+        case Operator::SUB:
+            return left->_sub_(right);
+        case Operator::MUL:
+            return left->_mul_(right);
+        case Operator::DIV:
+            return left->_div_(right);
+        case Operator::MOD:
+            return left->_mod_(right);
+        case Operator::AND:
+            return left->_and_(right);
+        case Operator::OR:
+            return left->_or_(right);
+        case Operator::EQ:
+            return left->_eq_(right);
+        case Operator::NE:
+            return left->_ne_(right);
+        case Operator::LT:
+            return left->_lt_(right);
+        case Operator::LE:
+            return left->_le_(right);
+        case Operator::GT:
+            return left->_gt_(right);
+        case Operator::GE:
+            return left->_ge_(right);
+        default:
+            throw std::runtime_error("Invalid operator");
         }
     }
 
     ValueType Binary::getValueType()
     {
-        try{
-            switch (op){
-                case Operator::ADD:
-                    return left->_add_type_(right->getValueType());
-                case Operator::SUB:
-                    return left->_sub_type_(right->getValueType());
-                case Operator::MUL:
-                    return left->_mul_type_(right->getValueType());
-                case Operator::DIV:
-                    return left->_div_type_(right->getValueType());
-                case Operator::MOD:
-                    return left->_mod_type_(right->getValueType());
-                case Operator::AND:
-                    return left->_and_type_(right->getValueType());
-                case Operator::OR:
-                    return left->_or_type_(right->getValueType());
-                case Operator::EQ:
-                    return left->_eq_type_(right->getValueType());
-                case Operator::NE:
-                    return left->_ne_type_(right->getValueType());
-                case Operator::LT:
-                    return left->_lt_type_(right->getValueType());
-                case Operator::LE:
-                    return left->_le_type_(right->getValueType());
-                case Operator::GT:
-                    return left->_gt_type_(right->getValueType());
-                case Operator::GE:
-                    return left->_ge_type_(right->getValueType());
-                default:
-                    throw std::runtime_error("Invalid operator");
-            }
-        }catch(std::runtime_error &e){
-            std::cerr << e.what() << std::endl;
-            exit(1);
+        switch (op)
+        {
+        case Operator::ADD:
+            return left->_add_type_(right->getValueType());
+        case Operator::SUB:
+            return left->_sub_type_(right->getValueType());
+        case Operator::MUL:
+            return left->_mul_type_(right->getValueType());
+        case Operator::DIV:
+            return left->_div_type_(right->getValueType());
+        case Operator::MOD:
+            return left->_mod_type_(right->getValueType());
+        case Operator::AND:
+            return left->_and_type_(right->getValueType());
+        case Operator::OR:
+            return left->_or_type_(right->getValueType());
+        case Operator::EQ:
+            return left->_eq_type_(right->getValueType());
+        case Operator::NE:
+            return left->_ne_type_(right->getValueType());
+        case Operator::LT:
+            return left->_lt_type_(right->getValueType());
+        case Operator::LE:
+            return left->_le_type_(right->getValueType());
+        case Operator::GT:
+            return left->_gt_type_(right->getValueType());
+        case Operator::GE:
+            return left->_ge_type_(right->getValueType());
+        default:
+            throw std::runtime_error("Invalid operator");
         }
     }
 
@@ -1587,6 +1605,15 @@ namespace SED::AST
         return name;
     }
 
+    ValueType Variable::getValueType()
+    {
+        if (analyzerContext.exists(this))
+        {
+            return analyzerContext.get(this)->getValueType();
+        }
+        return ValueType::VOID;
+    }
+
     void Variable::toMermaid()
     {
         size_t variable_id = getCounter();
@@ -1604,16 +1631,7 @@ namespace SED::AST
 
     DirectRightValue *Variable::directify()
     {
-        try
-        {
-            return analyzerContext.get(this);
-        }
-        catch (std::runtime_error &e)
-        {
-            std::cerr << e.what() << std::endl;
-            exit(1);
-        }
-        return nullptr;
+        return analyzerContext.get(this);
     }
 
     Variable *Variable::setValueType(ValueType _type)
@@ -1681,7 +1699,11 @@ namespace SED::AST
 
     ValueType FunctionCall::getValueType()
     {
-        return valueType;
+        if (analyzerContext.exists(this))
+        {
+            return analyzerContext.get(this);
+        }
+        return ValueType::VOID;
     }
 
     const std::string &FunctionCall::getName() const
@@ -1738,5 +1760,4 @@ namespace SED::AST
         // return nullptr;
         return nullptr;
     }
-
 }

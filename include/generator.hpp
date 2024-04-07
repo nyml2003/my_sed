@@ -46,6 +46,10 @@ namespace SED::Generator {
         static void putLabel(const std::string_view &label);
     };
 
+    class LLVMGenerator {
+    public:
+        virtual void toLLVM() = 0;
+    };
 }
 
 #endif //SED_GENERATOR_HPP

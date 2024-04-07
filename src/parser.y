@@ -40,17 +40,18 @@
 %type < std::vector< SED::AST::VariableDeclaration* > > DeclList
 %type < std::vector< SED::AST::Assignment* > > DefList
 %type < std::vector< SED::AST::RightValue* > > ValList
-%type < SED::AST::RightValue* > UnaryExp MulExp AddExp RelExp EqExp LAndExp LOrExp PrimaryExp Number Exp Cond Val
+%type < SED::AST::RightValue* > UnaryExp MulExp AddExp RelExp EqExp LAndExp LOrExp PrimaryExp Exp Cond Val
 %type < SED::AST::Operator > UNARYOP
 %type < SED::AST::ValueType > Type
 %type < std::vector < SED::AST::Argument* > > FuncFParams
 %type < SED::AST::FunctionCall* > Call
 %token <std::string> IDENT
 %token RETURN CONST
-%token TYPE_INT TYPE_VOID TYPE_FLOAT
+%token TYPE_INT TYPE_VOID TYPE_FLOAT TYPE_BOOL
 %token<std::int32_t> INT_CONST
+%token<float> FLOAT_CONST
 %token LPAREN RPAREN LBRACE RBRACE SEMICOLON COMMA LBRACKET RBRACKET
-%token PLUS MINUS STAR SLASH PERCENT AND OR EQ NE LT GT LE GE NOT ASSIGN CONTINUE BREAK IF WHILE
+%token PLUS MINUS STAR SLASH PERCENT AND OR EQ NE LT GT LE GE NOT ASSIGN CONTINUE BREAK IF WHILE TRUE FALSE 
 %left ELSE
 %%
 %start CompUnit;
@@ -76,12 +77,17 @@ DeclList :
         $$ = std::vector< SED::AST::VariableDeclaration* >();
         for (auto def : $2) {
             auto decl = (new SED::AST::VariableDeclaration())->setType($1)->setVariable(def->getVariable());
+            decl->getVariable()->setValueType($1);
             if (def->getValue() != nullptr) {
                 decl->setValue(def->getValue());
             }else{
                 decl->setValue(SED::AST::DirectRightValueInitializer::get($1));
             }
             $$.push_back(decl);
+            decl->begin.line = @1.begin.line;
+            decl->begin.column = @1.begin.column;
+            decl->end.line = @3.end.line;
+            decl->end.column = @3.end.column;
         }
     }
     | CONST DeclList {
@@ -96,6 +102,7 @@ Type:
     TYPE_INT { $$ = SED::AST::ValueType::INT_32; }
     | TYPE_FLOAT { $$ = SED::AST::ValueType::FLOAT_32; }
     | TYPE_VOID { $$ = SED::AST::ValueType::VOID; }
+    | TYPE_BOOL { $$ = SED::AST::ValueType::BOOLEAN; }
     ;
 
 Def:
@@ -115,9 +122,17 @@ DefList:
 FuncDef:
     Type IDENT LPAREN RPAREN Block {
         $$ = (new SED::AST::Function())->setReturnType($1)->setName($2)->setBlock($5);
+        $$->begin.line = @1.begin.line;
+        $$->begin.column = @1.begin.column;
+        $$->end.line = @5.end.line;
+        $$->end.column = @5.end.column;
     }
     | Type IDENT LPAREN FuncFParams RPAREN Block {
         $$ = (new SED::AST::Function())->setReturnType($1)->setName($2)->setBlock($6)->setParameters($4);
+        $$->begin.line = @1.begin.line;
+        $$->begin.column = @1.begin.column;
+        $$->end.line = @6.end.line;
+        $$->end.column = @6.end.column;
     }
 
 FuncFParams:
@@ -144,14 +159,33 @@ BlockItemList:
 
 Stmt:
     Ident ASSIGN Exp SEMICOLON { $$ = (new SED::AST::Assignment())->setVariable($1)->setValue($3); }
-    | RETURN Exp SEMICOLON { $$ = (new SED::AST::ReturnStatement())->setValue($2); }
+    | RETURN LOrExp SEMICOLON { $$ = (new SED::AST::ReturnStatement())->setValue($2); }
+    | RETURN SEMICOLON { $$ = (new SED::AST::ReturnStatement())->setValue(SED::AST::DirectRightValueInitializer::get(SED::AST::ValueType::VOID)); }
     | Block { $$ = $1; }
     | Exp SEMICOLON { $$ = $1; }
-    | WHILE LPAREN Cond RPAREN Stmt { $$ = (new SED::AST::WhileStatement())->setCondition($3)->setBlock(SED::AST::Block::blockify($5)); }
+    | WHILE LPAREN Cond RPAREN Stmt { 
+        $$ = (new SED::AST::WhileStatement())->setCondition($3)->setBlock(SED::AST::Block::blockify($5));
+        $$->begin.line = @1.begin.line;
+        $$->begin.column = @1.begin.column;
+        $$->end.line = @5.end.line;
+        $$->end.column = @5.end.column;
+    }
     | CONTINUE SEMICOLON { $$ = new SED::AST::ContinueStatement(); }
     | BREAK SEMICOLON { $$ = new SED::AST::BreakStatement(); }
-    | IF LPAREN Cond RPAREN Stmt %prec ELSE { $$ = (new SED::AST::IfStatement())->setCondition($3)->setThenBlock(SED::AST::Block::blockify($5)); }
-    | IF LPAREN Cond RPAREN Stmt ELSE Stmt { $$ = (new SED::AST::IfStatement())->setCondition($3)->setThenBlock(SED::AST::Block::blockify($5))->setElseBlock(SED::AST::Block::blockify($7)); }
+    | IF LPAREN Cond RPAREN Stmt %prec ELSE { 
+        $$ = (new SED::AST::IfStatement())->setCondition($3)->setThenBlock(SED::AST::Block::blockify($5)); 
+        $$->begin.line = @1.begin.line;
+        $$->begin.column = @1.begin.column;
+        $$->end.line = @5.end.line;
+        $$->end.column = @5.end.column;
+    }
+    | IF LPAREN Cond RPAREN Stmt ELSE Stmt {
+         $$ = (new SED::AST::IfStatement())->setCondition($3)->setThenBlock(SED::AST::Block::blockify($5))->setElseBlock(SED::AST::Block::blockify($7));
+            $$->begin.line = @1.begin.line;
+            $$->begin.column = @1.begin.column;
+            $$->end.line = @7.end.line;
+            $$->end.column = @7.end.column;
+     }
     ;
 
 ValList:
@@ -181,11 +215,10 @@ Cond:
 PrimaryExp:
     Ident { $$ = $1; }
     | LPAREN Exp RPAREN { $$ = $2; }
-    | Number { $$ = $1; }
-    ;
-
-Number:
-    INT_CONST { $$ = (new SED::AST::Int32())->setValue($1); }
+    | INT_CONST { $$ = (new SED::AST::Int32())->setValue($1); }
+    | FLOAT_CONST { $$ = (new SED::AST::Float32())->setValue($1); }
+    | TRUE { $$ = (new SED::AST::Boolean())->setValue(true); }
+    | FALSE { $$ = (new SED::AST::Boolean())->setValue(false); }
     ;
 
 UNARYOP:

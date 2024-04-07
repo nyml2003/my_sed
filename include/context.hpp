@@ -18,6 +18,8 @@ namespace SED {
             void add(AST::Function *function);
             AST::DirectRightValue *get(AST::Variable *variable);
             AST::ValueType get(AST::FunctionCall *functionCall);
+            bool exists(AST::Variable *variable);
+            bool exists(AST::FunctionCall *functionCall);
             void set(AST::Variable *variable, AST::DirectRightValue *value);
             void enter() ;
             void leave() ;

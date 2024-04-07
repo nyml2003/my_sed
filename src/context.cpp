@@ -2,6 +2,7 @@
 // Created by venty on 2024/3/24.
 //
 #include "context.hpp"
+#include <iostream>
 
 namespace SED::Context {
     void AnalyzerContext::add(AST::Variable *variable, AST::DirectRightValue *value) {
@@ -38,6 +39,22 @@ namespace SED::Context {
         throw std::runtime_error("Function not found");
     }
 
+    bool AnalyzerContext::exists(AST::Variable *variable) {
+        
+        std::string name = variable->getName();
+        for (auto it = variables.rbegin(); it != variables.rend(); it++) {
+            if (it->find(name) != it->end()) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    bool AnalyzerContext::exists(AST::FunctionCall *functionCall) {
+        std::string name = functionCall->getName();
+        return functions.find(name) != functions.end();
+    }
+
     void AnalyzerContext::set(AST::Variable *variable, AST::DirectRightValue *value)
     {
         std::string name = variable->getName();
@@ -49,6 +66,8 @@ namespace SED::Context {
         }
         throw std::runtime_error("Variable not found");
     }
+
+
 
     /**
     * @brief 进入一个新的作用域

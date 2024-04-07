@@ -7,13 +7,74 @@
 #include "generator.hpp"
 #include "value.hpp"
 #include "context.hpp"
-
+#include <fstream>
+#include "driver.hpp"
 
 namespace SED::AST {
 
     /*---------------------Node---------------------*/
 
-    Node::Node(NodeClass _nodeClass) : nodeClass(_nodeClass) {}
+    Node::Node(NodeClass _nodeClass) : nodeClass(_nodeClass) {
+    }
+
+    void Node::dump(const std::string &message)
+    {
+        std::ifstream targetFile(driver.sourceFileName);
+        std::vector<std::string> lines;
+        std::string line;
+        for (int i = 0; i < this->begin.line - 1; i++)
+        {
+            std::getline(targetFile, line);
+        }
+        for (int i = this->begin.line - 1; i < this->end.line; i++)
+        {
+            std::getline(targetFile, line);
+            lines.push_back(line);
+        }
+        for (size_t i = 0; i < lines.size(); i++)
+        {
+            std::cerr << "|" << lines[i] << std::endl;
+            std::cerr << "|";
+            if (i == 0)
+            {
+                for (int j = 0; j < this->begin.column - 1; j++)
+                {
+                    std::cerr << " ";
+                }
+                if (this->begin.line == this->end.line)
+                {
+                    for (int j = this->begin.column - 1; j < this->end.column - 1; j++)
+                    {
+                        std::cerr << "^";
+                    }
+                }
+                else
+                {
+                    for (size_t j = this->begin.column - 1; j < lines[i].size(); j++)
+                    {
+                        std::cerr << "^";
+                    }
+                }
+            }
+            else if (i == lines.size() - 1)
+            {
+                for (int j = 0; j < this->end.column - 1; j++)
+                {
+                    std::cerr << "^";
+                }
+            }
+            else
+            {
+                for (size_t j = 0; j < lines[i].size(); j++)
+                {
+                    std::cerr << " ";
+                }
+            }
+            std::cerr << std::endl;
+        }
+        std::cerr << "| Error: " << message << std::endl;
+        exit(1);
+    }
 
     NodeClass Node::getNodeClass() const {
         return nodeClass;
@@ -28,9 +89,11 @@ namespace SED::AST {
         return false;
     }
 
+
     /*---------------------COMPILATION_UNIT---------------------*/
 
-    CompilationUnit::CompilationUnit() : Node(NodeClass::COMPILATION_UNIT) {}
+    CompilationUnit::CompilationUnit() : Node(NodeClass::COMPILATION_UNIT) {
+    }
 
     CompilationUnit *CompilationUnit::setChildren(std::vector<Node *> _children) {
         children = std::move(_children);
@@ -119,15 +182,23 @@ namespace SED::AST {
     bool VariableDeclaration::getIsConst() const {
         return isConst;
     }
-
+    /**
+     * @brief 语义分析,
+     * 1. 先检查变量是否已经存在
+     * 2. 检查var和val的类型是否匹配
+    */
     void VariableDeclaration::analyze() {
-        bool isDirect = value->isDirect();
-        if (isConst && !isDirect) {
-            throw std::runtime_error("常量必须是直接值");
+        if (nullptr == value) {
+            dump("变量声明必须初始化");
         }
-        if (isDirect) {
-            value = value->directify();
-            analyzerContext.add(variable, value->directify());
+        if (type != value->getValueType()) {
+            dump("变量类型不匹配, 期望" + Generator::ValueTypeToMermaid::toMermaid(type) + ", 实际" + Generator::ValueTypeToMermaid::toMermaid(value->getValueType()));
+        }
+        if (value->isDirect()) {
+            auto directValue = value->directify();
+            analyzerContext.add(variable, directValue);
+        }else{
+            analyzerContext.add(variable, DirectRightValueInitializer::get(value->getValueType()));
         }
     }
 
@@ -152,9 +223,6 @@ namespace SED::AST {
         count();
         putEdge(id, getCounter(), "变量");
         variable->toMermaid();
-        if (value == nullptr) {
-            return;
-        }
         count();
         putEdge(id, getCounter(), "值");
         value->toMermaid();
@@ -169,11 +237,17 @@ namespace SED::AST {
     }
 
     void Assignment::analyze() {
+        if (analyzerContext.get(variable) == nullptr) {
+            dump("变量 " + variable->getName() + " 未声明");
+        }
+        if (variable->getValueType() != value->getValueType()) {
+            dump("赋值类型不匹配, 期望" + Generator::ValueTypeToMermaid::toMermaid(variable->getValueType()) + ", 实际" + Generator::ValueTypeToMermaid::toMermaid(value->getValueType()));
+        }
         if (value->isDirect()) {
-            value = value->directify();
-            analyzerContext.set(variable, value->directify());
+            auto directValue = value->directify();
+            analyzerContext.set(variable, directValue);
         }else{
-            analyzerContext.set(variable, nullptr);
+            analyzerContext.set(variable, DirectRightValueInitializer::get(value->getValueType()));
         }
     }
 
@@ -283,10 +357,31 @@ namespace SED::AST {
         analyzerContext.add(this);
         analyzerContext.enter();
         for (auto &parameter : parameters) {
-            analyzerContext.add(parameter->getVariable(), nullptr);
+            analyzerContext.add(parameter->getVariable(), DirectRightValueInitializer::get(parameter->getType()));
         }
-        for (auto &child : block->getChildren()) {
-            child->analyze();
+        bool hasReturn = false;
+        size_t i;
+        for (i = 0; i < block->getChildren().size(); i++) {
+            if (block->getChildren()[i]->getNodeClass() == NodeClass::RETURN_STATEMENT) {
+                auto returnStatement = dynamic_cast<ReturnStatement *>(block->getChildren()[i]);
+                if (returnStatement->getValue()->getValueType() != returnType) {
+                    dump("返回值类型不匹配, 期望" + Generator::ValueTypeToMermaid::toMermaid(returnType) + ", 实际" + Generator::ValueTypeToMermaid::toMermaid(returnStatement->getValue()->getValueType()));
+                }
+                hasReturn = true;
+            }
+            block->getChildren()[i]->analyze();
+        }
+        if (i == block->getChildren().size()) {
+            if (returnType != ValueType::VOID) {
+                if (!hasReturn) {
+                    dump("函数缺少返回值");
+                }
+            }else{
+                block->getChildren().push_back((new ReturnStatement())->setValue(DirectRightValueInitializer::get(ValueType::VOID)));
+            }
+        }else if (i != block->getChildren().size() - 1) {
+
+            block->setChildren(std::vector<Node *>(block->getChildren().begin(), block->getChildren().begin() + i + 1));
         }
         analyzerContext.leave();
     }
@@ -313,7 +408,7 @@ namespace SED::AST {
     }
 
     void ReturnStatement::analyze() {
-        if (value->isDirect()) value = value->directify();
+        ;
     }
 
     /*---------------------IfStatement---------------------*/
@@ -361,6 +456,15 @@ namespace SED::AST {
     }
 
     void IfStatement::analyze() {
+        try{
+            if (condition->getValueType() != ValueType::BOOLEAN)
+            {
+                dump("if条件必须是bool类型");
+            }
+        }catch(const std::runtime_error& e){
+            dump(e.what());
+        }
+        
         thenBlock->analyze();
         if (elseBlock != nullptr) {
             elseBlock->analyze();
@@ -401,6 +505,9 @@ namespace SED::AST {
     }
 
     void WhileStatement::analyze() {
+        if (condition->getValueType() != ValueType::BOOLEAN) {
+            dump("while条件必须是bool类型");
+        }
         block->analyze();
     }
 
