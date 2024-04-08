@@ -77,24 +77,6 @@ namespace SED::AST {
     }
 
     void VariableDeclaration::interpret(){
-        if (isConst) {
-            if (value->getValueType() != type)
-            {
-                dump("the type of variable " + variable->getName() + " is " + Generator::ValueTypeToMermaid::toMermaid(type), Error::ErrorType::INFO);
-                dump("the type of value is " + Generator::ValueTypeToMermaid::toMermaid(value->getValueType()), Error::ErrorType::INFO);
-                dump("type mismatch", Error::ErrorType::WARNING);
-                return;
-            }
-            auto valueDirect = value->directify();
-            try
-            {
-                analyzerContext.add(variable, valueDirect);
-            }
-            catch (std::runtime_error &e)
-            {
-                dump(e.what(), Error::ErrorType::WARNING);
-            }
-        } else {
             if (value->getValueType() != type) {
                 dump("the type of variable " + variable->getName() + " is " + Generator::ValueTypeToMermaid::toMermaid(type), Error::ErrorType::INFO);
                 dump("the type of value is " + Generator::ValueTypeToMermaid::toMermaid(value->getValueType()), Error::ErrorType::INFO);
@@ -107,7 +89,6 @@ namespace SED::AST {
             }catch(std::runtime_error &e){
                 dump(e.what(), Error::ErrorType::WARNING);
             }
-        }
     }
 
     VariableDeclaration *VariableDeclaration::setVariable(Variable *_variable) {
@@ -182,6 +163,7 @@ namespace SED::AST {
             dump("the type of variable " + variable->getName() + " is " + Generator::ValueTypeToMermaid::toMermaid(analyzerContext.get(variable)->getValueType()), Error::ErrorType::INFO);
             dump("the type of value is " + Generator::ValueTypeToMermaid::toMermaid(value->getValueType()), Error::ErrorType::INFO);
             dump("type mismatch", Error::ErrorType::WARNING);
+            return;
         }
         auto valueDirect = value->directify();
         analyzerContext.set(variable, valueDirect);

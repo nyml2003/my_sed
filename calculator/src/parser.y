@@ -125,6 +125,7 @@ Stmt:
         try{
             $2->interpret();
         }catch(std::runtime_error& e){
+            $2->dump(e.what(), SED::Error::ErrorType::WARNING);
             break;
         }
     }

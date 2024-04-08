@@ -74,4 +74,18 @@ Warning: Variable a already exists,the statement will be ignored
 INFO: the type of variable a is int
 INFO: the type of value is bool
 Warning: type mismatch,the statement will be ignored
+>>a+true;
+Warning: Invalid operation: int + bool,the statement will be ignored
+>>a==1;
+false
+```
+
+# 其余报错
+```
+example,其中>>代表输入
+>>b;
+INFO: Variable: b
+Warning: Variable b not found,the statement will be ignored
+>>b=1;
+Warning: the identifier b is not declared,the statement will be ignored
 ```
