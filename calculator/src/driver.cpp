@@ -18,30 +18,11 @@ namespace SED::Driver{
         this->traceScanning = traceScanning;
     }
 
-    void Driver::setSourceFileName(const std::string &sourceFileName) {
-        this->sourceFileName = sourceFileName;
-        freopen(sourceFileName.c_str(), "r", stdin);
-    }
-
-    void Driver::setOutputFileName(const std::string &outputFileName) {
-        this->outputFileName = outputFileName;
-        freopen(outputFileName.c_str(), "w", stdout);
-    }
-
-    void Driver::setErrorFileName(const std::string &errorFileName) {
-        this->errorFileName = errorFileName;
-        freopen(errorFileName.c_str(), "w", stderr);
-    }
-
     void Driver::parse() {
-
-        if (this->sourceFileName.empty()) {
-            std::cerr << "No input file" << std::endl;
-            return;
-        }
-        location.initialize(&sourceFileName);
+        location.initialize();
         yy::parser parse(*this);
         parse.set_debug_level(traceParsing);
+        
         int res = parse();
         if (res != 0) {
             std::cerr << "Parse failed" << std::endl;
