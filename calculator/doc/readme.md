@@ -1,4 +1,19 @@
-# 变量声明
+# 编译项目 cmake
+```
+mkdir build && cd build && cmake .. && make && cd ..
+```
+# 运行项目
+```
+./build/sed
+```
+# 清理项目
+```
+rm -rf build
+```
+
+# 用例
+
+## 变量声明
 **type**
 - **int** : 32位整数
 - **float** : 32位浮点数
@@ -40,7 +55,10 @@ value: 100
 
 -----------
 ```
-# 赋值语句
+## 赋值表达式
+
+右结合，有副作用的表达式，值为最后一个表达式的值
+
 ```
 [variable] = [value] ;
 ```
@@ -49,18 +67,41 @@ value: 100
 example,其中>>代表输入
 >>int __add_1_2___;
 >>__add_1_2___=1+2;
+3
 >>print(__add_1_2___);
 3
+>>int a,b,c,d,e;
+>>a=b=c=d=e=100;
+100
+>>list;
+---Variable List---
+
+name: a
+value: 100
+
+name: b
+value: 100
+
+name: c
+value: 100
+
+name: d
+value: 100
+
+name: e
+value: 100
+
+-----------
 ```
 
-# 表达式计算
+## 表达式计算
 ```
 example,其中>>代表输入
 >>(1 + 2) * 3 == 3 * (2 + 1) ;
 true
 ```
 
-# 类型检查
+## 类型检查
 ```
 example,其中>>代表输入
 >>int a = (1 + 2) * 3 == 3 * (2 + 1);
@@ -80,7 +121,7 @@ Warning: Invalid operation: int + bool,the statement will be ignored
 false
 ```
 
-# 其余报错
+## 其余报错
 ```
 example,其中>>代表输入
 >>b;
@@ -88,4 +129,5 @@ INFO: Variable: b
 Warning: Variable b not found,the statement will be ignored
 >>b=1;
 Warning: the identifier b is not declared,the statement will be ignored
+1
 ```

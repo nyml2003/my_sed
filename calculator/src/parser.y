@@ -37,7 +37,7 @@
 %type<SED::AST::Variable*> Var
 %type < std::vector< SED::AST::VariableDeclaration* > > DeclList
 %type < std::vector< SED::AST::Assignment* > > DefList
-%type < SED::AST::RightValue* > UnaryExp MulExp AddExp RelExp EqExp LAndExp LOrExp PrimaryExp Exp Val
+%type < SED::AST::RightValue* > UnaryExp MulExp AddExp RelExp EqExp LAndExp LOrExp PrimaryExp Exp Val AssignExp
 %type < SED::AST::Operator > UNARYOP
 %type < SED::AST::ValueType > Type
 %token <std::string> IDENT
@@ -92,7 +92,7 @@ Def:
     ;
 
 Val:
-    LOrExp { $$ = $1; }
+    AssignExp { $$ = $1; }
   ;
 
 DefList:
@@ -102,7 +102,7 @@ DefList:
 
 Stmt:
      {  }
-    | Stmt PRINT LPAREN LOrExp RPAREN SEMICOLON {$4->interpret();}
+    | Stmt PRINT LPAREN AssignExp RPAREN SEMICOLON {$4->interpret();}
     | Stmt DeclList { 
         for (auto decl : $2) {
             decl->interpret();
@@ -113,15 +113,11 @@ Stmt:
         (new SED::AST::BreakStatement())->interpret();
     
     }
-    | Stmt Var ASSIGN Val SEMICOLON {
-        (new SED::AST::Assignment())->setVariable($2)->setValue($4)->interpret();
-        
-    }
     | Stmt LIST SEMICOLON { 
         analyzerContext.list();
         
     }
-    | Stmt LOrExp SEMICOLON { 
+    | Stmt AssignExp SEMICOLON { 
         try{
             $2->interpret();
         }catch(std::runtime_error& e){
@@ -139,7 +135,7 @@ Var
     ;
 
 Exp:
-    AddExp { $$ = $1; }
+    AssignExp { $$ = $1; }
     ;
 
 
@@ -150,9 +146,6 @@ PrimaryExp:
     | FLOAT_CONST { $$ = (new SED::AST::Float32())->setValue($1); }
     | TRUE { $$ = (new SED::AST::Boolean())->setValue(true); }
     | FALSE { $$ = (new SED::AST::Boolean())->setValue(false); }
-    | TYPE_INT LPAREN Exp RPAREN { 
-        
-    }
     ;
 
 UNARYOP:
@@ -228,6 +221,14 @@ LOrExp:
     | LOrExp OR LAndExp { 
         $$ = (new SED::AST::Binary())->setOp(SED::AST::Operator::OR)->setLeft($1)->setRight($3);
     }
+
+AssignExp:
+    LOrExp { $$ = $1; }
+    | Var ASSIGN AssignExp { 
+        (new SED::AST::Assignment())->setVariable($1)->setValue($3)->interpret();
+        $$ = $3;
+    }
+    ;
 
 %%
 
