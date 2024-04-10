@@ -3,6 +3,7 @@
 
 #include <cstdint>
 #include "ast.hpp"
+#include <optional>
 
 namespace SED::AST
 {
@@ -107,6 +108,11 @@ namespace SED::AST
 
         virtual ValueType _not_type_() = 0;
 
+        virtual DirectRightValue *asInt32() = 0;
+        virtual DirectRightValue *asFloat32() = 0;
+        virtual DirectRightValue *asBoolean() = 0;
+        virtual DirectRightValue *asPointer() = 0;
+
         virtual bool isSameValueType(RightValue *other);
 
         virtual void interpret() override = 0;
@@ -204,6 +210,14 @@ namespace SED::AST
 
         virtual bool isInt32();
 
+        DirectRightValue *asInt32() override;
+
+        DirectRightValue *asFloat32() override;
+
+        DirectRightValue *asBoolean() override;
+
+        DirectRightValue *asPointer() override;
+
         virtual bool isFloat32();
 
         virtual bool isBoolean();
@@ -215,7 +229,7 @@ namespace SED::AST
 
     class Int32 : public DirectRightValue
     {
-        int32_t value{};
+        std::optional<int32_t> value{};
 
     public:
         explicit Int32();
@@ -282,12 +296,20 @@ namespace SED::AST
 
         ValueType _neg_type_() override;
 
+        DirectRightValue* asInt32() override;
+
+        DirectRightValue* asFloat32() override;
+
+        DirectRightValue* asBoolean() override;
+
+
         bool isInt32() override;
+        bool isDirect() override;
     };
 
     class Float32 : public DirectRightValue
     {
-        float value{};
+        std::optional<float> value{};
 
     public:
         explicit Float32();
@@ -351,11 +373,19 @@ namespace SED::AST
         ValueType _neg_type_() override;
 
         bool isFloat32() override;
+
+        bool isDirect() override;
+
+        DirectRightValue* asInt32() override;
+
+        DirectRightValue* asFloat32() override;
+
+        DirectRightValue* asBoolean() override;
     };
 
     class Boolean : public DirectRightValue
     {
-        bool value{};
+        std::optional<bool> value;
 
     public:
         explicit Boolean();
@@ -363,6 +393,8 @@ namespace SED::AST
         void toMermaid() override;
 
         void interpret() override;
+
+        bool isDirect() override;
 
         ValueType getValueType() override;
 
@@ -391,6 +423,12 @@ namespace SED::AST
         ValueType _not_type_() override;
 
         bool isBoolean() override;
+
+        DirectRightValue* asInt32() override;
+
+        DirectRightValue* asFloat32() override;
+
+        DirectRightValue* asBoolean() override;
     };
 
     class Pointer : public DirectRightValue
@@ -528,6 +566,14 @@ namespace SED::AST
 
         ValueType _not_type_() override;
 
+        DirectRightValue *asInt32() override;
+
+        DirectRightValue *asFloat32() override;
+
+        DirectRightValue *asBoolean() override;
+
+        DirectRightValue *asPointer() override;
+
         bool isDirect() override = 0;
 
         DirectRightValue *directify() override = 0;
@@ -623,14 +669,31 @@ namespace SED::AST
         virtual ValueType getValueType() override;
     };
 
-    class DirectRightValueInitializer
+    class FunctionCall : public IndirectRightValue
     {
-        static std::map<ValueType, DirectRightValue *> values;
+        std::string name;
 
     public:
-        static DirectRightValue *get(ValueType type);
+        FunctionCall *setName(const std::string &_name);
+
+
+        void interpret() override;
+
+        [[nodiscard]] const std::string &getName() const;
+
+
+        void toMermaid() override;
+
+        bool isDirect() override;
+
+        DirectRightValue *directify() override;
+
+        explicit FunctionCall();
+
+        ValueType getValueType() override;
     };
 
+    DirectRightValue* createValue(ValueType type);
 }
 
 #endif // SED_VALUE_HPP

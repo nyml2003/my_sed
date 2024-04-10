@@ -34,10 +34,11 @@
 
 %type < SED::AST::Assignment* > Def
 %type < SED::AST::Node* > Stmt
+%type < SED::AST::FunctionDeclaration* > FuncDecl
 %type<SED::AST::Variable*> Var
 %type < std::vector< SED::AST::VariableDeclaration* > > DeclList
 %type < std::vector< SED::AST::Assignment* > > DefList
-%type < SED::AST::RightValue* > UnaryExp MulExp AddExp RelExp EqExp LAndExp LOrExp PrimaryExp Exp Val AssignExp
+%type < SED::AST::RightValue* > UnaryExp MulExp AddExp RelExp EqExp LAndExp LOrExp PrimaryExp Exp Val 
 %type < SED::AST::Operator > UNARYOP
 %type < SED::AST::ValueType > Type
 %token <std::string> IDENT
@@ -45,7 +46,7 @@
 %token TYPE_INT TYPE_VOID TYPE_FLOAT TYPE_BOOL
 %token<std::int32_t> INT_CONST
 %token<float> FLOAT_CONST
-%token LPAREN RPAREN SEMICOLON COMMA PRINT
+%token LPAREN RPAREN SEMICOLON COMMA PRINT LBRACE RBRACE
 %token PLUS MINUS STAR SLASH PERCENT AND OR EQ NE LT GT LE GE NOT TRUE FALSE BREAK LIST
 %right ASSIGN
 %%
@@ -62,7 +63,19 @@ DeclList :
             if (def->getValue() != nullptr) {
                 decl->setValue(def->getValue());
             }else{
-                decl->setValue(SED::AST::DirectRightValueInitializer::get($1));
+                switch ($1) {
+                    case SED::AST::ValueType::INT_32:
+                        decl->setValue(new SED::AST::Int32());
+                        break;
+                    case SED::AST::ValueType::FLOAT_32:
+                        decl->setValue(new SED::AST::Float32());
+                        break;
+                    case SED::AST::ValueType::BOOLEAN:
+                        decl->setValue(new SED::AST::Boolean());
+                        break;
+                    default:
+                        break;
+                }
             }
             $$.push_back(decl);
             decl->begin.line = @1.begin.line;
@@ -92,7 +105,7 @@ Def:
     ;
 
 Val:
-    AssignExp { $$ = $1; }
+    Exp { $$ = $1; }
   ;
 
 DefList:
@@ -102,7 +115,7 @@ DefList:
 
 Stmt:
      {  }
-    | Stmt PRINT LPAREN AssignExp RPAREN SEMICOLON {$4->interpret();}
+    | Stmt PRINT LPAREN Exp RPAREN SEMICOLON {$4->interpret();}
     | Stmt DeclList { 
         for (auto decl : $2) {
             decl->interpret();
@@ -117,7 +130,7 @@ Stmt:
         analyzerContext.list();
         
     }
-    | Stmt AssignExp SEMICOLON { 
+    | Stmt Exp SEMICOLON { 
         try{
             $2->interpret();
         }catch(std::runtime_error& e){
@@ -128,6 +141,25 @@ Stmt:
     | Stmt SEMICOLON { 
         
     }
+    | Stmt FuncDecl SEMICOLON { 
+        $2->interpret();
+    }
+    | Stmt Var ASSIGN Exp SEMICOLON {
+        try{
+            (new SED::AST::Assignment())->setVariable($2)->setValue($4)->interpret();
+        }catch(std::runtime_error& e){
+            $4->dump(e.what(), SED::Error::ErrorType::WARNING);
+            break;
+        }
+        
+    }
+    ;
+
+FuncDecl:
+    Type IDENT LPAREN RPAREN {
+        $$ = (new SED::AST::FunctionDeclaration())->setReturnType($1)->setName($2);
+
+    }
     ;
 
 Var
@@ -135,7 +167,7 @@ Var
     ;
 
 Exp:
-    AssignExp { $$ = $1; }
+    LOrExp { $$ = $1; }
     ;
 
 
@@ -146,6 +178,9 @@ PrimaryExp:
     | FLOAT_CONST { $$ = (new SED::AST::Float32())->setValue($1); }
     | TRUE { $$ = (new SED::AST::Boolean())->setValue(true); }
     | FALSE { $$ = (new SED::AST::Boolean())->setValue(false); }
+    | IDENT LPAREN RPAREN { 
+        $$ = (new SED::AST::FunctionCall())->setName($1);
+    }
     ;
 
 UNARYOP:
@@ -159,6 +194,15 @@ UnaryExp:
     | UNARYOP UnaryExp {
         $$ = (new SED::AST::Unary())->setOp($1)->setExpr($2);
     } 
+    | LPAREN TYPE_INT RPAREN UnaryExp {
+        $$ = $4->asInt32();
+    }
+    | LPAREN TYPE_FLOAT RPAREN UnaryExp { 
+        $$ = $4->asFloat32();
+    }
+    | LPAREN TYPE_BOOL RPAREN UnaryExp { 
+        $$ = $4->asBoolean(); 
+    }
     ;
 
 MulExp:
@@ -221,14 +265,6 @@ LOrExp:
     | LOrExp OR LAndExp { 
         $$ = (new SED::AST::Binary())->setOp(SED::AST::Operator::OR)->setLeft($1)->setRight($3);
     }
-
-AssignExp:
-    LOrExp { $$ = $1; }
-    | Var ASSIGN AssignExp { 
-        (new SED::AST::Assignment())->setVariable($1)->setValue($3)->interpret();
-        $$ = $3;
-    }
-    ;
 
 %%
 

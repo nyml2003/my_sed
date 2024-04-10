@@ -14,9 +14,13 @@ namespace SED {
         struct AnalyzerContext {
             AnalyzerContext();
             std::vector<std::map<std::string, AST::DirectRightValue *> > variables;
+            std::vector<std::map<std::string, AST::ValueType>> functions;
             void add(AST::Variable *variable, AST::DirectRightValue *value) ;
+            void add(std::string name, AST::ValueType type);
             AST::DirectRightValue *get(AST::Variable *variable);
+            AST::ValueType get(std::string name);
             bool exists(AST::Variable *variable);
+            bool exists(std::string name);
             void set(AST::Variable *variable, AST::DirectRightValue *value);
             void list();
         };

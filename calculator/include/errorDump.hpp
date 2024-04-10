@@ -16,7 +16,6 @@ namespace SED::Error
     {
     public:
         virtual void dump(const std::string &message, ErrorType errorType = ErrorType::ERROR) = 0;
-        virtual void dump(const std::vector<std::string>& messages, ErrorType errorType = ErrorType::ERROR) = 0;
     };
 } // namespace SED::Analyzable
 

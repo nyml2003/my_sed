@@ -4,6 +4,7 @@
 #include <iostream>
 namespace SED::AST
 {
+    
 
     /*RightValue*/
 
@@ -13,6 +14,8 @@ namespace SED::AST
     {
         return getNodeClass() == other->getNodeClass();
     }
+
+    /*DirectRightValue*/
 
     void DirectRightValue::throwTypeMismatchError(const std::string &operation, NodeClass left, NodeClass right)
     {
@@ -267,11 +270,70 @@ namespace SED::AST
         return false;
     }
 
+    DirectRightValue *DirectRightValue::asBoolean()
+    {
+        throw std::runtime_error("Invalid cast to boolean");
+    }
+
+    DirectRightValue *DirectRightValue::asInt32()
+    {
+        throw std::runtime_error("Invalid cast to int32");
+    }
+
+    DirectRightValue *DirectRightValue::asFloat32()
+    {
+        throw std::runtime_error("Invalid cast to float32");
+    }
+
+    DirectRightValue *DirectRightValue::asPointer()
+    {
+        throw std::runtime_error("Invalid cast to pointer");
+    }
+
+    /*Int32*/
+
     Int32::Int32() : DirectRightValue(NodeClass::INT_32) {}
+
+    bool Int32::isDirect()
+    {
+        if (value.has_value())
+        {
+            return true;
+        }
+        return false;
+    }
+
+    DirectRightValue *Int32::asInt32()
+    {
+        return this;
+    }
+
+    DirectRightValue *Int32::asFloat32()
+    {
+        if (value.has_value())
+        {
+            return (new Float32())->setValue(value.value());
+        }
+        else{
+            return new Float32();
+        }
+    }
+
+    DirectRightValue *Int32::asBoolean()
+    {
+        if (value.has_value())
+        {
+            return (new Boolean())->setValue(value.value() != 0);
+        }
+        else{
+            return new Boolean();
+        }
+    }
+
 
     int32_t Int32::getValue() const
     {
-        return value;
+        return value.has_value() ? value.value() : 0;
     }
 
     void Int32::toMermaid()
@@ -280,14 +342,28 @@ namespace SED::AST
         putLabel(getNodeClass());
         count();
         size_t value_id = getCounter();
-        putLabel(std::to_string(value));
+        if (value.has_value())
+        {
+            putLabel(std::to_string(value.value()));
+        }
+        else
+        {
+            putLabel("null");
+        }
         putEdge(int32_id, value_id, "value");
         count();
     }
 
     void Int32::interpret()
     {
-        std::cout << value << std::endl;
+        if (value.has_value())
+        {
+            std::cout << value.value() << std::endl;
+        }
+        else
+        {
+            std::cout << "null" << std::endl;
+        }
     }
 
     Int32 *Int32::setValue(int32_t _value)
@@ -313,7 +389,7 @@ namespace SED::AST
             auto otherDirect = other->directify();
             if (otherDirect->isInt32())
             {
-                return (new Int32())->setValue(value + ((Int32 *)otherDirect)->getValue());
+                return (new Int32())->setValue(value.value() + ((Int32 *)otherDirect)->getValue());
             }
         }
         return DirectRightValue::_add_(other);
@@ -335,7 +411,7 @@ namespace SED::AST
             auto otherDirect = other->directify();
             if (otherDirect->isInt32())
             {
-                return (new Int32())->setValue(value - ((Int32 *)otherDirect)->getValue());
+                return (new Int32())->setValue(value.value() - ((Int32 *)otherDirect)->getValue());
             }
         }
         return DirectRightValue::_sub_(other);
@@ -357,7 +433,7 @@ namespace SED::AST
             auto otherDirect = other->directify();
             if (otherDirect->isInt32())
             {
-                return (new Int32())->setValue(value * ((Int32 *)otherDirect)->getValue());
+                return (new Int32())->setValue(value.value() * ((Int32 *)otherDirect)->getValue());
             }
         }
         return DirectRightValue::_mul_(other);
@@ -383,7 +459,7 @@ namespace SED::AST
                 {
                     throw std::runtime_error("Division by zero");
                 }
-                return (new Int32())->setValue(value / ((Int32 *)otherDirect)->getValue());
+                return (new Int32())->setValue(value.value() / ((Int32 *)otherDirect)->getValue());
             }
         }
         return DirectRightValue::_div_(other);
@@ -409,7 +485,7 @@ namespace SED::AST
                 {
                     throw std::runtime_error("Division by zero");
                 }
-                return (new Int32())->setValue(value % ((Int32 *)otherDirect)->getValue());
+                return (new Int32())->setValue(value.value() % ((Int32 *)otherDirect)->getValue());
             }
         }
         return DirectRightValue::_mod_(other);
@@ -431,7 +507,7 @@ namespace SED::AST
             auto otherDirect = other->directify();
             if (otherDirect->isInt32())
             {
-                return (new Boolean())->setValue(value == ((Int32 *)otherDirect)->getValue());
+                return (new Boolean())->setValue(value.value() == ((Int32 *)otherDirect)->getValue());
             }
         }
         return DirectRightValue::_eq_(other);
@@ -453,7 +529,7 @@ namespace SED::AST
             auto otherDirect = other->directify();
             if (otherDirect->isInt32())
             {
-                return (new Boolean())->setValue(value != ((Int32 *)otherDirect)->getValue());
+                return (new Boolean())->setValue(value.value() != ((Int32 *)otherDirect)->getValue());
             }
         }
         return DirectRightValue::_ne_(other);
@@ -475,7 +551,7 @@ namespace SED::AST
             auto otherDirect = other->directify();
             if (otherDirect->isInt32())
             {
-                return (new Boolean())->setValue(value < ((Int32 *)other)->getValue());
+                return (new Boolean())->setValue(value.value() < ((Int32 *)other)->getValue());
             }
         }
         return DirectRightValue::_lt_(other);
@@ -497,7 +573,7 @@ namespace SED::AST
             auto otherDirect = other->directify();
             if (otherDirect->isInt32())
             {
-                return (new Boolean())->setValue(value <= ((Int32 *)other)->getValue());
+                return (new Boolean())->setValue(value.value() <= ((Int32 *)other)->getValue());
             }
         }
         return DirectRightValue::_le_(other);
@@ -519,7 +595,7 @@ namespace SED::AST
             auto otherDirect = other->directify();
             if (otherDirect->isInt32())
             {
-                return (new Boolean())->setValue(value > ((Int32 *)other)->getValue());
+                return (new Boolean())->setValue(value.value() > ((Int32 *)other)->getValue());
             }
         }
         return DirectRightValue::_gt_(other);
@@ -541,7 +617,7 @@ namespace SED::AST
             auto otherDirect = other->directify();
             if (otherDirect->isInt32())
             {
-                return (new Boolean())->setValue(value >= ((Int32 *)otherDirect)->getValue());
+                return (new Boolean())->setValue(value.value() >= ((Int32 *)otherDirect)->getValue());
             }
         }
         return DirectRightValue::_ge_(other);
@@ -558,7 +634,7 @@ namespace SED::AST
 
     DirectRightValue *Int32::_pos_()
     {
-        return (new Int32())->setValue(value);
+        return (new Int32())->setValue(value.value());
     }
 
     ValueType Int32::_pos_type_()
@@ -568,7 +644,7 @@ namespace SED::AST
 
     DirectRightValue *Int32::_neg_()
     {
-        return (new Int32())->setValue(-value);
+        return (new Int32())->setValue(-value.value());
     }
 
     ValueType Int32::_neg_type_()
@@ -576,7 +652,46 @@ namespace SED::AST
         return ValueType::INT_32;
     }
 
+    /*Float32*/
+
     Float32::Float32() : DirectRightValue(NodeClass::FLOAT_32) {}
+
+    bool Float32::isDirect()
+    {
+        if (value.has_value())
+        {
+            return true;
+        }
+        return false;
+    }
+
+    DirectRightValue *Float32::asFloat32()
+    {
+        return this;
+    }
+
+    DirectRightValue *Float32::asInt32()
+    {
+        if (value.has_value())
+        {
+            return (new Int32())->setValue(value.value());
+        }
+        else{
+            return new Int32();
+        }
+    }
+
+    DirectRightValue *Float32::asBoolean()
+    {
+        if (value.has_value())
+        {
+            return (new Boolean())->setValue(value.value() != 0);
+        }
+        else{
+            return new Boolean();
+        }
+    }
+    
 
     void Float32::toMermaid()
     {
@@ -584,14 +699,28 @@ namespace SED::AST
         putLabel(getNodeClass());
         count();
         size_t value_id = getCounter();
-        putLabel(std::to_string(value));
+        if (value.has_value())
+        {
+            putLabel(std::to_string(value.value()));
+        }
+        else
+        {
+            putLabel("null");
+        }
         putEdge(float32_id, value_id, "value");
         count();
     }
 
     void Float32::interpret()
     {
-        std::cout << value << std::endl;
+        if (value.has_value())
+        {
+            std::cout << value.value() << std::endl;
+        }
+        else
+        {
+            std::cout << "null" << std::endl;
+        }
     }
 
     Float32 *Float32::setValue(float _value)
@@ -612,7 +741,7 @@ namespace SED::AST
             auto otherDirect = other->directify();
             if (otherDirect->isFloat32())
             {
-                return (new Float32())->setValue(value + ((Float32 *)otherDirect)->getValue());
+                return (new Float32())->setValue(value.value() + ((Float32 *)otherDirect)->getValue());
             }
         }
         return DirectRightValue::_add_(other);
@@ -632,7 +761,7 @@ namespace SED::AST
             auto otherDirect = other->directify();
             if (otherDirect->isFloat32())
             {
-                return (new Float32())->setValue(value - ((Float32 *)otherDirect)->getValue());
+                return (new Float32())->setValue(value.value() - ((Float32 *)otherDirect)->getValue());
             }
         }
         return DirectRightValue::_sub_(other);
@@ -654,7 +783,7 @@ namespace SED::AST
             auto otherDirect = other->directify();
             if (otherDirect->isFloat32())
             {
-                return (new Float32())->setValue(value * ((Float32 *)otherDirect)->getValue());
+                return (new Float32())->setValue(value.value() * ((Float32 *)otherDirect)->getValue());
             }
         }
         return DirectRightValue::_mul_(other);
@@ -680,7 +809,7 @@ namespace SED::AST
                 {
                     throw std::runtime_error("Division by zero");
                 }
-                return (new Float32())->setValue(value / ((Float32 *)otherDirect)->getValue());
+                return (new Float32())->setValue(value.value() / ((Float32 *)otherDirect)->getValue());
             }
         }
         return DirectRightValue::_div_(other);
@@ -697,7 +826,7 @@ namespace SED::AST
 
     float Float32::getValue() const
     {
-        return value;
+        return value.has_value() ? value.value() : 0.0;
     }
 
     ValueType Float32::getValueType()
@@ -839,7 +968,7 @@ namespace SED::AST
 
     DirectRightValue *Float32::_pos_()
     {
-        return (new Float32())->setValue(value);
+        return (new Float32())->setValue(value.value());
     }
 
     ValueType Float32::_pos_type_()
@@ -849,7 +978,7 @@ namespace SED::AST
 
     DirectRightValue *Float32::_neg_()
     {
-        return (new Float32())->setValue(-value);
+        return (new Float32())->setValue(-value.value());
     }
 
     ValueType Float32::_neg_type_()
@@ -857,15 +986,57 @@ namespace SED::AST
         return ValueType::FLOAT_32;
     }
 
+    /*Boolean*/
+
     Boolean *Boolean::setValue(bool _value)
     {
         this->value = _value;
         return this;
     }
 
+    DirectRightValue* Boolean::asBoolean()
+    {
+        return this;
+    }
+
+    DirectRightValue *Boolean::asInt32()
+    {
+        if (value.has_value())
+        {
+            return (new Int32())->setValue(value.value());
+        }
+        else{
+            return new Int32();
+        }
+    }
+
+    DirectRightValue *Boolean::asFloat32()
+    {
+        if (value.has_value())
+        {
+            return (new Float32())->setValue(value.value());
+        }
+        else{
+            return new Float32();
+        }
+    }
+
+    bool Boolean::isDirect()
+    {
+        if (value.has_value())
+        {
+            return true;
+        }
+        return false;
+    }
+
     bool Boolean::getValue() const
     {
-        return value;
+        if (value.has_value())
+        {
+            return value.value();
+        }
+        return false;
     }
 
     ValueType Boolean::getValueType()
@@ -888,7 +1059,14 @@ namespace SED::AST
 
     void Boolean::interpret()
     {
-        std::cout << (value ? "true" : "false") << std::endl;
+        if (value.has_value())
+        {
+            std::cout << (value.value() ? "true" : "false") << std::endl;
+        }
+        else
+        {
+            std::cout << "null" << std::endl;
+        }
     }
 
     bool Boolean::isBoolean()
@@ -1217,6 +1395,8 @@ namespace SED::AST
         return DirectRightValue::_ge_type_(other);
     }
 
+    /*IndirectRightValue*/
+
     IndirectRightValue::IndirectRightValue(AST::NodeClass _NodeClass) : RightValue(_NodeClass) {}
 
     DirectRightValue *IndirectRightValue::_add_(RightValue *other)
@@ -1224,9 +1404,8 @@ namespace SED::AST
         return this->directify()->_add_(other);
     }
 
-    ValueType IndirectRightValue::_add_type_(ValueType other)
-    {
-        return DirectRightValueInitializer::get(getValueType())->_add_type_(other);
+    ValueType IndirectRightValue::_add_type_(ValueType other){
+        return createValue(getValueType())->_add_type_(other);
     }
 
     DirectRightValue *IndirectRightValue::_sub_(RightValue *other)
@@ -1236,7 +1415,7 @@ namespace SED::AST
 
     ValueType IndirectRightValue::_sub_type_(ValueType other)
     {
-        return DirectRightValueInitializer::get(getValueType())->_sub_type_(other);
+        return createValue(getValueType())->_sub_type_(other);
     }
 
     DirectRightValue *IndirectRightValue::_mul_(RightValue *other)
@@ -1246,7 +1425,7 @@ namespace SED::AST
 
     ValueType IndirectRightValue::_mul_type_(ValueType other)
     {
-        return DirectRightValueInitializer::get(getValueType())->_mul_type_(other);
+        return createValue(getValueType())->_mul_type_(other);
     }
 
     DirectRightValue *IndirectRightValue::_div_(RightValue *other)
@@ -1256,7 +1435,7 @@ namespace SED::AST
 
     ValueType IndirectRightValue::_div_type_(ValueType other)
     {
-        return DirectRightValueInitializer::get(getValueType())->_div_type_(other);
+        return createValue(getValueType())->_div_type_(other);
     }
 
     DirectRightValue *IndirectRightValue::_mod_(RightValue *other)
@@ -1266,7 +1445,7 @@ namespace SED::AST
 
     ValueType IndirectRightValue::_mod_type_(ValueType other)
     {
-        return DirectRightValueInitializer::get(getValueType())->_mod_type_(other);
+        return createValue(getValueType())->_mod_type_(other);
     }
 
     DirectRightValue *IndirectRightValue::_and_(RightValue *other)
@@ -1276,7 +1455,7 @@ namespace SED::AST
 
     ValueType IndirectRightValue::_and_type_(ValueType other)
     {
-        return DirectRightValueInitializer::get(getValueType())->_and_type_(other);
+        return createValue(getValueType())->_and_type_(other);
     }
 
     DirectRightValue *IndirectRightValue::_or_(RightValue *other)
@@ -1286,7 +1465,7 @@ namespace SED::AST
 
     ValueType IndirectRightValue::_or_type_(ValueType other)
     {
-        return DirectRightValueInitializer::get(getValueType())->_or_type_(other);
+        return createValue(getValueType())->_or_type_(other);
     }
 
     DirectRightValue *IndirectRightValue::_eq_(RightValue *other)
@@ -1296,7 +1475,7 @@ namespace SED::AST
 
     ValueType IndirectRightValue::_eq_type_(ValueType other)
     {
-        return DirectRightValueInitializer::get(getValueType())->_eq_type_(other);
+        return createValue(getValueType())->_eq_type_(other);
     }
 
     DirectRightValue *IndirectRightValue::_ne_(RightValue *other)
@@ -1306,7 +1485,7 @@ namespace SED::AST
 
     ValueType IndirectRightValue::_ne_type_(ValueType other)
     {
-        return DirectRightValueInitializer::get(getValueType())->_ne_type_(other);
+        return createValue(getValueType())->_ne_type_(other);
     }
 
     DirectRightValue *IndirectRightValue::_lt_(RightValue *other)
@@ -1316,7 +1495,7 @@ namespace SED::AST
 
     ValueType IndirectRightValue::_lt_type_(ValueType other)
     {
-        return DirectRightValueInitializer::get(getValueType())->_lt_type_(other);
+        return createValue(getValueType())->_lt_type_(other);
     }
 
     DirectRightValue *IndirectRightValue::_le_(RightValue *other)
@@ -1326,7 +1505,7 @@ namespace SED::AST
 
     ValueType IndirectRightValue::_le_type_(ValueType other)
     {
-        return DirectRightValueInitializer::get(getValueType())->_le_type_(other);
+        return createValue(getValueType())->_le_type_(other);
     }
 
     DirectRightValue *IndirectRightValue::_gt_(RightValue *other)
@@ -1336,7 +1515,7 @@ namespace SED::AST
 
     ValueType IndirectRightValue::_gt_type_(ValueType other)
     {
-        return DirectRightValueInitializer::get(getValueType())->_gt_type_(other);
+        return createValue(getValueType())->_gt_type_(other);
     }
 
     DirectRightValue *IndirectRightValue::_ge_(RightValue *other)
@@ -1346,7 +1525,7 @@ namespace SED::AST
 
     ValueType IndirectRightValue::_ge_type_(ValueType other)
     {
-        return DirectRightValueInitializer::get(getValueType())->_ge_type_(other);
+        return createValue(getValueType())->_ge_type_(other);
     }
 
     DirectRightValue *IndirectRightValue::_pos_()
@@ -1356,7 +1535,7 @@ namespace SED::AST
 
     ValueType IndirectRightValue::_pos_type_()
     {
-        return DirectRightValueInitializer::get(getValueType())->_pos_type_();
+        return createValue(getValueType())->_pos_type_();
     }
 
     DirectRightValue *IndirectRightValue::_neg_()
@@ -1366,7 +1545,7 @@ namespace SED::AST
 
     ValueType IndirectRightValue::_neg_type_()
     {
-        return DirectRightValueInitializer::get(getValueType())->_neg_type_();
+        return createValue(getValueType())->_neg_type_();
     }
 
     DirectRightValue *IndirectRightValue::_not_()
@@ -1376,13 +1555,35 @@ namespace SED::AST
 
     ValueType IndirectRightValue::_not_type_()
     {
-        return DirectRightValueInitializer::get(getValueType())->_not_type_();
+        return createValue(getValueType())->_not_type_();
     }
 
     ValueType IndirectRightValue::getValueType()
     {
         return this->directify()->getValueType();
     }
+
+    DirectRightValue* IndirectRightValue::asBoolean()
+    {
+        return this->directify()->asBoolean();
+    }
+
+    DirectRightValue* IndirectRightValue::asInt32()
+    {
+        return this->directify()->asInt32();
+    }
+
+    DirectRightValue* IndirectRightValue::asFloat32()
+    {
+        return this->directify()->asFloat32();
+    }
+
+    DirectRightValue* IndirectRightValue::asPointer()
+    {
+        return this->directify()->asPointer();
+    }
+
+    /*Binary*/
 
     Binary *Binary::setLeft(RightValue *_left)
     {
@@ -1666,7 +1867,7 @@ namespace SED::AST
 
     bool Variable::isDirect()
     {
-        if (analyzerContext.exists(this))
+        if (analyzerContext.exists(this) && analyzerContext.get(this)->isDirect())
         {
             return true;
         }
@@ -1688,20 +1889,6 @@ namespace SED::AST
     ValueType Variable::getValueType() const
     {
         return valueType;
-    }
-
-    /*---------------------DirectRightValueInitializer---------------------*/
-
-    std::map<ValueType, DirectRightValue *> DirectRightValueInitializer::values = {
-        {ValueType::INT_32, new Int32()},
-        {ValueType::FLOAT_32, new Float32()},
-        {ValueType::BOOLEAN, new Boolean()},
-        {ValueType::POINTER, new Pointer()},
-        {ValueType::VOID, new Void()}};
-
-    DirectRightValue *DirectRightValueInitializer::get(ValueType type)
-    {
-        return values[type];
     }
 
     /*---------------------Void---------------------*/
@@ -1731,5 +1918,88 @@ namespace SED::AST
         return true;
     }
 
-    
+    /*---------------------FunctionCall--------*/
+
+    FunctionCall::FunctionCall() : IndirectRightValue(NodeClass::FUNCTION_CALL) {}
+
+    FunctionCall *FunctionCall::setName(const std::string &_name)
+    {
+        name = _name;
+        return this;
+    }
+
+    const std::string &FunctionCall::getName() const
+    {
+        return name;
+    }
+
+
+    void FunctionCall::toMermaid()
+    {
+        size_t functionCall_id = getCounter();
+        putLabel(getNodeClass());
+        count();
+        size_t name_id = getCounter();
+        putLabel(name);
+        putEdge(functionCall_id, name_id, "name");
+    }
+
+    void FunctionCall::interpret()
+    {
+        try{
+            directify()->interpret();
+        }catch(std::runtime_error &e){
+            dump("FunctionCall: " + name, Error::ErrorType::INFO);
+            dump(e.what(), Error::ErrorType::WARNING);
+        }
+    }
+
+    bool FunctionCall::isDirect()
+    {
+        return false;
+    }
+
+    ValueType FunctionCall::getValueType()
+    {
+        if (analyzerContext.exists(this->name))
+        {
+            return analyzerContext.get(this->name);
+        }
+        return ValueType::VOID;
+    }
+
+    DirectRightValue *FunctionCall::directify()
+    {
+        switch (getValueType())
+        {
+        case ValueType::INT_32:
+            return new Int32();
+        case ValueType::FLOAT_32:
+            return new Float32();
+        case ValueType::BOOLEAN:
+            return new Boolean();
+        case ValueType::POINTER:
+            return new Pointer();
+        case ValueType::VOID:
+            return new Void();
+        default:
+            throw std::runtime_error("Invalid return type");
+        }
+
+    }
+
+    DirectRightValue* createValue(ValueType type)
+    {
+        switch (type)
+        {
+        case ValueType::INT_32:
+            return new Int32();
+        case ValueType::FLOAT_32:
+            return new Float32();
+        case ValueType::BOOLEAN:
+            return new Boolean();
+        default:
+            throw std::runtime_error("Invalid value type");
+        }
+    }
 }

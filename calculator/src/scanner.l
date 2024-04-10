@@ -37,6 +37,8 @@
 "&&" {return yy::parser::make_AND(loc);}
 "||" {return yy::parser::make_OR(loc);}
 "!" {return yy::parser::make_NOT(loc);}
+"{" {return yy::parser::make_LBRACE(loc);}
+"}" {return yy::parser::make_RBRACE(loc);}
 
 "0."[0-9]+ {return make_NUMBER_FLOAT(yytext, loc);}
 [0-9][1-9]*"."[0-9]* {return make_NUMBER_FLOAT(yytext, loc);}

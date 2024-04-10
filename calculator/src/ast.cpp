@@ -38,12 +38,6 @@ namespace SED::AST {
         }
     }
 
-    void Node::dump(const std::vector<std::string> &messages, Error::ErrorType errorType) {
-        for (const auto &message : messages) {
-            dump(message, errorType);
-        }
-        exit(1);
-    }
 
     NodeClass Node::getNodeClass() const {
         return nodeClass;
@@ -165,8 +159,12 @@ namespace SED::AST {
             dump("type mismatch", Error::ErrorType::WARNING);
             return;
         }
-        auto valueDirect = value->directify();
-        analyzerContext.set(variable, valueDirect);
+        try{
+            auto valueDirect = value->directify();
+            analyzerContext.set(variable, valueDirect);
+        }catch(std::runtime_error &e){
+            dump(e.what(), Error::ErrorType::WARNING);
+        }
     }
 
     Variable *Assignment::getVariable() const {
@@ -188,4 +186,49 @@ namespace SED::AST {
     void BreakStatement::interpret() {
         exit(0);
     }
+
+    /*---------------------FunctionDeclaration---------------------*/
+
+    FunctionDeclaration::FunctionDeclaration() : Node(NodeClass::FUNCTION_DECLARATION) {}
+
+    void FunctionDeclaration::toMermaid() {
+        size_t id = getCounter();
+        putLabel(NodeClass::FUNCTION_DECLARATION);
+        count();
+        putEdge(id, getCounter(), "函数名");
+        putLabel(name);
+        count();
+        putEdge(id, getCounter(), "返回值");
+        putLabel(returnType);
+    }
+
+    void FunctionDeclaration::interpret() {
+        if (analyzerContext.exists(name)) {
+            dump("the function " + name + " is already declared", Error::ErrorType::WARNING);
+            return;
+        }
+        analyzerContext.add(name, returnType);
+    }
+
+    FunctionDeclaration *FunctionDeclaration::setName(const std::string &_name) {
+        name = _name;
+        return this;
+    }
+
+    FunctionDeclaration *FunctionDeclaration::setReturnType(ValueType _returnType) {
+        returnType = _returnType;
+        return this;
+    }
+
+    std::string FunctionDeclaration::getName() const {
+        return name;
+    }
+
+    ValueType FunctionDeclaration::getReturnType() const {
+        return returnType;
+    }
+
+
+
+    
 }
