@@ -19,15 +19,16 @@ namespace SED::Driver {
     };
     class Driver {
     public:
-        Driver(Config config);
+        explicit Driver(Config config);
+        
         ~Driver()=default;
         void setTraceParsing(bool traceParsing);
         void setTraceScanning(bool traceScanning);
         void parse();
         static void error(const yy::location &l, const std::string &m);
         yy::location location;
-        bool traceScanning;
-        bool traceParsing;
+        bool traceScanning = false;
+        bool traceParsing = false;
         std::vector<std::string> historyCode;
     };
 } // Driver

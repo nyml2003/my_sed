@@ -9,43 +9,40 @@
 #include "context.hpp"
 #include <fstream>
 #include "driver.hpp"
-#include "errorDump.hpp"
+#include "error.hpp"
 
-namespace SED::AST {
+namespace SED::AST
+{
 
     /*---------------------Node---------------------*/
 
-    Node::Node(NodeClass _nodeClass) : nodeClass(_nodeClass) {
+    Node::Node(NodeClass _nodeClass) : nodeClass(_nodeClass)
+    {
     }
 
-    void Node::dump(const std::string &message, Error::ErrorType errorType) {
-        
-        // 根据errorType的不同，输出不同的颜色，在控制台中显示 std::cerr
-        switch (errorType) {
-            case Error::ErrorType::ERROR:
-                std::cerr << "\033[31mError: \033[0m" << message << std::endl;
-                exit(1);
-                break;
-            case Error::ErrorType::WARNING:
-                std::cerr << "\033[33mWarning: \033[0m" << message << ",the statement will be ignored" << std::endl;
-                break;
-            case Error::ErrorType::INFO:
-                std::cout << "\033[34mINFO: \033[0m" << message << std::endl;
-                break;
-            default:
-                std::cerr << "Unknown Error" << std::endl;
-                break;
-        }
+    std::map<NodeClass, std::string> NodeClassEnumMap = {
+        {NodeClass::VARIABLE_DECLARATION, "VariableDeclaration"},
+        {NodeClass::ASSIGNMENT, "Assignment"},
+        {NodeClass::INT_32, "Int32"},
+        {NodeClass::FLOAT_32, "Float32"},
+        {NodeClass::BOOLEAN, "Boolean"},
+        {NodeClass::POINTER, "Pointer"},
+        {NodeClass::UNARY, "Unary"},
+        {NodeClass::BINARY, "Binary"},
+        {NodeClass::VARIABLE, "Variable"},
+        {NodeClass::VOID, "Void"},
+        {NodeClass::BREAK_STATEMENT, "BreakStatement"},
+        {NodeClass::FUNCTION_CALL, "FunctionCall"},
+        {NodeClass::FUNCTION_DECLARATION, "FunctionDeclaration"},
+        {NodeClass::EXPRESSION_STATEMENT, "ExpressionStatement"}};
+
+    std::string NodeClassEnumMapToString(NodeClass nodeClass){
+        return NodeClassEnumMap[nodeClass];
     }
 
-
-    NodeClass Node::getNodeClass() const {
+    NodeClass Node::getNodeClass() const
+    {
         return nodeClass;
-    }
-
-    Node *Node::setNodeClass(NodeClass _nodeClass) {
-        nodeClass = _nodeClass;
-        return this;
     }
 
     /*---------------------VARIABLE_DECLARATION---------------------*/
@@ -62,7 +59,8 @@ namespace SED::AST {
         count();
         putEdge(id, getCounter(), "变量");
         variable->toMermaid();
-        if (value == nullptr) {
+        if (value == nullptr)
+        {
             return;
         }
         count();
@@ -70,22 +68,28 @@ namespace SED::AST {
         value->toMermaid();
     }
 
-    void VariableDeclaration::interpret(){
-            if (value->getValueType() != type) {
-                dump("the type of variable " + variable->getName() + " is " + Generator::ValueTypeToMermaid::toMermaid(type), Error::ErrorType::INFO);
-                dump("the type of value is " + Generator::ValueTypeToMermaid::toMermaid(value->getValueType()), Error::ErrorType::INFO);
-                dump("type mismatch", Error::ErrorType::WARNING);
+    void VariableDeclaration::interpret()
+    {
+        try
+        {
+            ValueType valueType = value->getValueType();
+
+            if (valueType != type)
+            {
+                Error::TypeMismatchError(type, valueType).error();
                 return;
             }
             auto valueDirect = value->directify();
-            try{
-                analyzerContext.add(variable, valueDirect);
-            }catch(std::runtime_error &e){
-                dump(e.what(), Error::ErrorType::WARNING);
-            }
+            analyzerContext.add(variable, valueDirect);
+        }
+        catch (std::runtime_error &e)
+        {
+            std::cout << e.what() << std::endl;
+        }
     }
 
-    VariableDeclaration *VariableDeclaration::setVariable(Variable *_variable) {
+    VariableDeclaration *VariableDeclaration::setVariable(Variable *_variable)
+    {
         variable = _variable;
         return this;
     }
@@ -96,48 +100,56 @@ namespace SED::AST {
         return this;
     }
 
-    VariableDeclaration *VariableDeclaration::setType(ValueType _type) {
+    VariableDeclaration *VariableDeclaration::setType(ValueType _type)
+    {
         type = _type;
         return this;
     }
 
-    VariableDeclaration *VariableDeclaration::setIsConst(bool _isConst) {
+    VariableDeclaration *VariableDeclaration::setIsConst(bool _isConst)
+    {
         isConst = _isConst;
         return this;
     }
 
-    Variable *VariableDeclaration::getVariable() const {
+    Variable *VariableDeclaration::getVariable() const
+    {
         return variable;
     }
 
-    RightValue* VariableDeclaration::getValue() const {
+    RightValue *VariableDeclaration::getValue() const
+    {
         return value;
     }
 
-    ValueType VariableDeclaration::getType() const {
+    ValueType VariableDeclaration::getType() const
+    {
         return type;
     }
 
-    bool VariableDeclaration::getIsConst() const {
+    bool VariableDeclaration::getIsConst() const
+    {
         return isConst;
     }
 
     /*---------------------Assignment---------------------*/
 
+    Assignment::Assignment() : Node(NodeClass::ASSIGNMENT) {}
 
-    Assignment::Assignment() : Node(NodeClass::ASSIGNMENT){}
-
-    Assignment *Assignment::setVariable(Variable *_variable) {
+    Assignment *Assignment::setVariable(Variable *_variable)
+    {
         variable = _variable;
         return this;
     }
 
-    Assignment *Assignment::setValue(RightValue *_value) {
+    Assignment *Assignment::setValue(RightValue *_value)
+    {
         value = _value;
         return this;
     }
 
-    void Assignment::toMermaid() {
+    void Assignment::toMermaid()
+    {
         size_t id = getCounter();
         putLabel(NodeClass::ASSIGNMENT);
         count();
@@ -148,30 +160,36 @@ namespace SED::AST {
         value->toMermaid();
     }
 
-    void Assignment::interpret() {
-        if (analyzerContext.exists(variable) == false) {
-            dump("the identifier " + variable->getName() + " is not declared", Error::ErrorType::WARNING);
+    void Assignment::interpret()
+    {
+        if (analyzerContext.exists(variable) == false)
+        {
+            Error::UndefinedVariableError(variable->getName()).error();
             return;
         }
-        if (analyzerContext.get(variable)->getValueType() != value->getValueType()) {
-            dump("the type of variable " + variable->getName() + " is " + Generator::ValueTypeToMermaid::toMermaid(analyzerContext.get(variable)->getValueType()), Error::ErrorType::INFO);
-            dump("the type of value is " + Generator::ValueTypeToMermaid::toMermaid(value->getValueType()), Error::ErrorType::INFO);
-            dump("type mismatch", Error::ErrorType::WARNING);
+        if (analyzerContext.get(variable)->getValueType() != value->getValueType())
+        {
+            Error::TypeMismatchError(analyzerContext.get(variable)->getValueType(), value->getValueType()).error();
             return;
         }
-        try{
+        try
+        {
             auto valueDirect = value->directify();
             analyzerContext.set(variable, valueDirect);
-        }catch(std::runtime_error &e){
-            dump(e.what(), Error::ErrorType::WARNING);
+        }
+        catch (std::runtime_error &e)
+        {
+            std::cerr << e.what() << std::endl;
         }
     }
 
-    Variable *Assignment::getVariable() const {
+    Variable *Assignment::getVariable() const
+    {
         return variable;
     }
 
-    RightValue *Assignment::getValue() const {
+    RightValue *Assignment::getValue() const
+    {
         return value;
     }
 
@@ -179,11 +197,13 @@ namespace SED::AST {
 
     BreakStatement::BreakStatement() : Node(NodeClass::BREAK_STATEMENT) {}
 
-    void BreakStatement::toMermaid() {
+    void BreakStatement::toMermaid()
+    {
         putLabel(NodeClass::BREAK_STATEMENT);
     }
 
-    void BreakStatement::interpret() {
+    void BreakStatement::interpret()
+    {
         exit(0);
     }
 
@@ -191,7 +211,8 @@ namespace SED::AST {
 
     FunctionDeclaration::FunctionDeclaration() : Node(NodeClass::FUNCTION_DECLARATION) {}
 
-    void FunctionDeclaration::toMermaid() {
+    void FunctionDeclaration::toMermaid()
+    {
         size_t id = getCounter();
         putLabel(NodeClass::FUNCTION_DECLARATION);
         count();
@@ -202,33 +223,76 @@ namespace SED::AST {
         putLabel(returnType);
     }
 
-    void FunctionDeclaration::interpret() {
-        if (analyzerContext.exists(name)) {
-            dump("the function " + name + " is already declared", Error::ErrorType::WARNING);
-            return;
+    void FunctionDeclaration::interpret()
+    {
+        try{
+            if (analyzerContext.exists(name))
+            {
+                Error::FunctionRedeclarationError(name).error();
+                return;
+            }
+            analyzerContext.add(name, returnType);
+        }catch(std::runtime_error &e){
+            std::cerr << e.what() << std::endl;
         }
-        analyzerContext.add(name, returnType);
+        
     }
 
-    FunctionDeclaration *FunctionDeclaration::setName(const std::string &_name) {
+    FunctionDeclaration *FunctionDeclaration::setName(const std::string &_name)
+    {
         name = _name;
         return this;
     }
 
-    FunctionDeclaration *FunctionDeclaration::setReturnType(ValueType _returnType) {
+    FunctionDeclaration *FunctionDeclaration::setReturnType(ValueType _returnType)
+    {
         returnType = _returnType;
         return this;
     }
 
-    std::string FunctionDeclaration::getName() const {
+    std::string FunctionDeclaration::getName() const
+    {
         return name;
     }
 
-    ValueType FunctionDeclaration::getReturnType() const {
+    ValueType FunctionDeclaration::getReturnType() const
+    {
         return returnType;
     }
 
+    /*---------------------ExpressionStatement---------------------*/
 
+    ExpressionStatement::ExpressionStatement() : Node(NodeClass::EXPRESSION_STATEMENT) {}
 
-    
+    ExpressionStatement *ExpressionStatement::setValue(RightValue *_value)
+    {
+        value = _value;
+        return this;
+    }
+
+    RightValue *ExpressionStatement::getValue() const
+    {
+        return value;
+    }
+
+    void ExpressionStatement::toMermaid()
+    {
+        size_t id = getCounter();
+        putLabel(NodeClass::EXPRESSION_STATEMENT);
+        count();
+        putEdge(id, getCounter(), "值");
+        value->toMermaid();
+    }
+
+    void ExpressionStatement::interpret()
+    {
+        try{
+            auto valueDirect = value->directify();
+            value = valueDirect;
+            value->interpret();
+        }catch(std::runtime_error &e){
+            std::cerr << e.what() << std::endl;
+        }
+    }
+
 }

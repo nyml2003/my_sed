@@ -2,6 +2,7 @@
 // Created by venty on 2024/3/24.
 //
 #include "context.hpp"
+#include "error.hpp"
 #include <iostream>
 
 namespace SED::Context
@@ -18,7 +19,7 @@ namespace SED::Context
         std::string name = variable->getName();
         if (variables.back().find(name) != variables.back().end())
         {
-            throw std::runtime_error("Variable " + name + " already exists");
+            Error::VariableRedeclarationError(name).error();
         }
         variables.back()[name] = value;
     }
@@ -33,7 +34,8 @@ namespace SED::Context
                 return it->at(name);
             }
         }
-        throw std::runtime_error("Variable " + name + " not found");
+        Error::UndefinedVariableError(name).error();
+        return nullptr;
     }
 
     bool AnalyzerContext::exists(AST::Variable *variable)
@@ -60,7 +62,7 @@ namespace SED::Context
                 return;
             }
         }
-        throw std::runtime_error("Variable " + name + " not found");
+        Error::UndefinedVariableError(name).error();
     }
 
     void AnalyzerContext::list()
@@ -112,7 +114,7 @@ namespace SED::Context
     {
         if (functions.back().find(name) != functions.back().end())
         {
-            throw std::runtime_error("Function " + name + " already exists");
+            Error::FunctionRedeclarationError(name).error();
         }
         functions.back()[name] = type;
     }
@@ -138,6 +140,7 @@ namespace SED::Context
                 return it->at(name);
             }
         }
-        throw std::runtime_error("Function " + name + " not found");
+        Error::UndefinedFunctionError(name).error();
+        return AST::ValueType::VOID;
     }
 }

@@ -41,15 +41,15 @@
 "}" {return yy::parser::make_RBRACE(loc);}
 
 "0."[0-9]+ {return make_NUMBER_FLOAT(yytext, loc);}
-[0-9][1-9]*"."[0-9]* {return make_NUMBER_FLOAT(yytext, loc);}
+[1-9][0-9]*"."[0-9]* {return make_NUMBER_FLOAT(yytext, loc);}
 
 
 "0x"[0-9a-fA-F]+ {return make_NUMBER_INT(yytext, loc, 16);}
 "0b"[01]+ {return make_NUMBER_INT(yytext, loc, 2);}
-"0"[0-7]* {return make_NUMBER_INT(yytext, loc, 8);}
+
 "0" {return make_NUMBER_INT(yytext, loc, 10);}
 [1-9][0-9]* {return make_NUMBER_INT(yytext, loc, 10);}
-
+0[0-7]* {return make_NUMBER_INT(yytext, loc, 8);}
 
 "int" {return yy::parser::make_TYPE_INT(loc);}
 "void" {return yy::parser::make_TYPE_VOID(loc);}
@@ -94,4 +94,3 @@ yy::parser::symbol_type make_NUMBER_FLOAT(const std::string&s,const yy::parser::
     }
     return yy::parser::make_FLOAT_CONST(value, loc);
 }
-

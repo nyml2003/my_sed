@@ -28,6 +28,11 @@ namespace SED::AST
         NOT
     };
 
+    extern std::map<Operator, std::string> OperatorEnumMap;
+    extern std::string OperatorEnumMapToString(Operator op);
+
+    
+
     enum class ValueType
     {
         INT_32,
@@ -36,6 +41,9 @@ namespace SED::AST
         POINTER,
         VOID
     };
+
+    extern std::map<ValueType, std::string> ValueTypeEnumMap;
+    extern std::string ValueTypeEnumMapToString(ValueType valueType);
 
     class DirectRightValue;
 
@@ -127,15 +135,6 @@ namespace SED::AST
 
     class DirectRightValue : public RightValue
     {
-        static void
-        throwTypeMismatchError(const std::string &operation, NodeClass left, NodeClass right);
-
-        static void
-        throwTypeMismatchError(const std::string &operation, NodeClass expr);
-
-        static void throwTypeMismatchError(const std::string &operation, ValueType left, ValueType right);
-
-        static void throwTypeMismatchError(const std::string &operation, ValueType expr);
 
     public:
         explicit DirectRightValue(NodeClass _NodeClass);
@@ -296,12 +295,11 @@ namespace SED::AST
 
         ValueType _neg_type_() override;
 
-        DirectRightValue* asInt32() override;
+        DirectRightValue *asInt32() override;
 
-        DirectRightValue* asFloat32() override;
+        DirectRightValue *asFloat32() override;
 
-        DirectRightValue* asBoolean() override;
-
+        DirectRightValue *asBoolean() override;
 
         bool isInt32() override;
         bool isDirect() override;
@@ -376,11 +374,11 @@ namespace SED::AST
 
         bool isDirect() override;
 
-        DirectRightValue* asInt32() override;
+        DirectRightValue *asInt32() override;
 
-        DirectRightValue* asFloat32() override;
+        DirectRightValue *asFloat32() override;
 
-        DirectRightValue* asBoolean() override;
+        DirectRightValue *asBoolean() override;
     };
 
     class Boolean : public DirectRightValue
@@ -424,11 +422,11 @@ namespace SED::AST
 
         bool isBoolean() override;
 
-        DirectRightValue* asInt32() override;
+        DirectRightValue *asInt32() override;
 
-        DirectRightValue* asFloat32() override;
+        DirectRightValue *asFloat32() override;
 
-        DirectRightValue* asBoolean() override;
+        DirectRightValue *asBoolean() override;
     };
 
     class Pointer : public DirectRightValue
@@ -676,11 +674,9 @@ namespace SED::AST
     public:
         FunctionCall *setName(const std::string &_name);
 
-
         void interpret() override;
 
         [[nodiscard]] const std::string &getName() const;
-
 
         void toMermaid() override;
 
@@ -693,7 +689,7 @@ namespace SED::AST
         ValueType getValueType() override;
     };
 
-    DirectRightValue* createValue(ValueType type);
+    DirectRightValue *createValue(ValueType type);
 }
 
 #endif // SED_VALUE_HPP

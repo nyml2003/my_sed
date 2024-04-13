@@ -7,7 +7,7 @@
 
 
 namespace SED::Driver{
-    Driver::Driver(Config config) : traceParsing(config.traceParsing), traceScanning(config.traceScanning) {
+    Driver::Driver(Config config) : traceScanning(config.traceScanning), traceParsing(config.traceParsing) {
     }
 
     void Driver::setTraceParsing(bool traceParsing) {
@@ -22,8 +22,7 @@ namespace SED::Driver{
         location.initialize();
         yy::parser parse(*this);
         parse.set_debug_level(traceParsing);
-        
-        int res = parse();
+            int res = parse();
         if (res != 0) {
             std::cerr << "Parse failed" << std::endl;
         }

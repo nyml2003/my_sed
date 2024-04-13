@@ -6,7 +6,7 @@
 #include <array>
 #include "generator.hpp"
 #include "location.hh"
-#include "errorDump.hpp"
+#include "error.hpp"
 #include "interpreter.hpp"
 
 namespace SED::AST
@@ -15,7 +15,6 @@ namespace SED::AST
     class RightValue;
     class Variable;
     enum class ValueType;
-
     enum class NodeClass
     {
         VARIABLE_DECLARATION,
@@ -31,21 +30,21 @@ namespace SED::AST
         BREAK_STATEMENT,
         FUNCTION_CALL,
         FUNCTION_DECLARATION,
+        EXPRESSION_STATEMENT
     };
+    extern std::map<NodeClass, std::string> NodeClassEnumMap;
+    extern std::string NodeClassEnumMapToString(NodeClass nodeClass);
 
-    class Node : public Generator::MermaidGenerator, public Error::ErrorDump, public Interpreter
-    {
+    class Node : public Generator::MermaidGenerator, public Interpreter
+    {   
         NodeClass nodeClass;
-        
     public:
         yy::position begin;
         yy::position end;
         Node(NodeClass _nodeClass);
         virtual void toMermaid() = 0;
-        NodeClass getNodeClass() const;
-        Node *setNodeClass(NodeClass _nodeClass);
-        void dump(const std::string &message, Error::ErrorType errorType = Error::ErrorType::ERROR) override;
         void interpret() override = 0;
+        NodeClass getNodeClass() const;
     };
 
     class VariableDeclaration : public Node
@@ -120,6 +119,17 @@ namespace SED::AST
         FunctionDeclaration *setName(const std::string &_name);
         ValueType getReturnType() const;
         std::string getName() const;
+        void toMermaid() override;
+        void interpret() override;
+    };
+
+    class ExpressionStatement : public Node
+    {
+        RightValue *value;
+    public:
+        explicit ExpressionStatement();
+        ExpressionStatement *setValue(RightValue *_value);
+        RightValue *getValue() const;
         void toMermaid() override;
         void interpret() override;
     };

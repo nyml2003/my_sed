@@ -8,7 +8,43 @@ namespace SED::AST
 
     /*RightValue*/
 
-    RightValue::RightValue(AST::NodeClass _NodeClass) : Node(_NodeClass) {}
+    std::string ValueTypeEnumMapToString(ValueType valueType){
+        return ValueTypeEnumMap[valueType];
+    }
+
+    std::map<ValueType, std::string> ValueTypeEnumMap = {
+        {ValueType::INT_32, "Int32"},
+        {ValueType::FLOAT_32, "Float32"},
+        {ValueType::BOOLEAN, "Boolean"},
+        {ValueType::POINTER, "Pointer"},
+        {ValueType::VOID, "Void"}};
+
+    std::string OperatorEnumMapToString(Operator op)
+    {
+        return OperatorEnumMap[op];
+    }
+
+    std::map <Operator, std::string> OperatorEnumMap = {
+        {Operator::ADD, "+"},
+        {Operator::SUB, "-"},
+        {Operator::MUL, "*"},
+        {Operator::DIV, "/"},
+        {Operator::MOD, "%"},
+        {Operator::AND, "&&"},
+        {Operator::OR, "||"},
+        {Operator::EQ, "=="},
+        {Operator::NE, "!="},
+        {Operator::LT, "<"},
+        {Operator::LE, "<="},
+        {Operator::GT, ">"},
+        {Operator::GE, ">="},
+        {Operator::POS, "+"},
+        {Operator::NEG, "-"},
+        {Operator::NOT, "!"}};
+
+    RightValue::RightValue(AST::NodeClass _NodeClass) : Node(_NodeClass)
+    {
+    }
 
     bool RightValue::isSameValueType(RightValue *other)
     {
@@ -17,29 +53,6 @@ namespace SED::AST
 
     /*DirectRightValue*/
 
-    void DirectRightValue::throwTypeMismatchError(const std::string &operation, NodeClass left, NodeClass right)
-    {
-        throw std::runtime_error(
-            "Invalid operation: " + Generator::NodeClassToMermaid::toMermaid(left) + " " + operation + " " + Generator::NodeClassToMermaid::toMermaid(right));
-    }
-
-    void DirectRightValue::throwTypeMismatchError(const std::string &operation, NodeClass left)
-    {
-        throw std::runtime_error(
-            "Invalid operation: " + operation + " " + Generator::NodeClassToMermaid::toMermaid(left));
-    }
-
-    void DirectRightValue::throwTypeMismatchError(const std::string &operation, ValueType left, ValueType right)
-    {
-        throw std::runtime_error(
-            "Invalid operation: " + Generator::ValueTypeToMermaid::toMermaid(left) + " " + operation + " " + Generator::ValueTypeToMermaid::toMermaid(right));
-    }
-
-    void DirectRightValue::throwTypeMismatchError(const std::string &operation, ValueType left)
-    {
-        throw std::runtime_error(
-            "Invalid operation: " + operation + " " + Generator::ValueTypeToMermaid::toMermaid(left));
-    }
 
     bool DirectRightValue::isDirect()
     {
@@ -55,193 +68,192 @@ namespace SED::AST
 
     DirectRightValue *DirectRightValue::_add_(RightValue *other)
     {
-        throwTypeMismatchError("+", getNodeClass(), other->getNodeClass());
+        Error::InvalidOperationError(getValueType(), Operator::ADD, other->getValueType()).error();
         return nullptr;
     }
 
     DirectRightValue *DirectRightValue::_sub_(RightValue *other)
     {
-        throwTypeMismatchError("-", getNodeClass(), other->getNodeClass());
+        Error::InvalidOperationError(getValueType(), Operator::SUB, other->getValueType()).error();
         return nullptr;
     }
 
     DirectRightValue *DirectRightValue::_mul_(RightValue *other)
     {
-        throwTypeMismatchError("*", getNodeClass(), other->getNodeClass());
+        Error::InvalidOperationError(getValueType(), Operator::MUL, other->getValueType()).error();
         return nullptr;
     }
 
     DirectRightValue *DirectRightValue::_div_(RightValue *other)
     {
-        throwTypeMismatchError("/", getNodeClass(), other->getNodeClass());
+        Error::InvalidOperationError(getValueType(), Operator::DIV, other->getValueType()).error();
         return nullptr;
     }
 
     DirectRightValue *DirectRightValue::_mod_(RightValue *other)
     {
-        throwTypeMismatchError("%", getNodeClass(), other->getNodeClass());
+        Error::InvalidOperationError(getValueType(), Operator::MOD, other->getValueType()).error();
         return nullptr;
     }
 
     DirectRightValue *DirectRightValue::_and_(RightValue *other)
     {
-        throwTypeMismatchError("&&", getNodeClass(), other->getNodeClass());
+        Error::InvalidOperationError(getValueType(), Operator::AND, other->getValueType()).error();
         return nullptr;
     }
 
     DirectRightValue *DirectRightValue::_or_(RightValue *other)
     {
-        throwTypeMismatchError("||", getNodeClass(), other->getNodeClass());
+        Error::InvalidOperationError(getValueType(), Operator::OR, other->getValueType()).error();
         return nullptr;
     }
 
     DirectRightValue *DirectRightValue::_eq_(RightValue *other)
     {
-        throwTypeMismatchError("==", getNodeClass(), other->getNodeClass());
+        Error::InvalidOperationError(getValueType(), Operator::EQ, other->getValueType()).error();
         return nullptr;
     }
 
     DirectRightValue *DirectRightValue::_ne_(RightValue *other)
     {
-        throwTypeMismatchError("!=", getNodeClass(), other->getNodeClass());
+        Error::InvalidOperationError(getValueType(), Operator::NE, other->getValueType()).error();
         return nullptr;
     }
 
     DirectRightValue *DirectRightValue::_lt_(RightValue *other)
     {
-        throwTypeMismatchError("<", getNodeClass(), other->getNodeClass());
+        Error::InvalidOperationError(getValueType(), Operator::LT, other->getValueType()).error();
         return nullptr;
     }
 
     DirectRightValue *DirectRightValue::_le_(RightValue *other)
     {
-        throwTypeMismatchError("<=", getNodeClass(), other->getNodeClass());
+        Error::InvalidOperationError(getValueType(), Operator::LE, other->getValueType()).error();
         return nullptr;
     }
 
     DirectRightValue *DirectRightValue::_gt_(RightValue *other)
     {
-        throwTypeMismatchError(">", getNodeClass(), other->getNodeClass());
+        Error::InvalidOperationError(getValueType(), Operator::GT, other->getValueType()).error();
         return nullptr;
     }
 
     DirectRightValue *DirectRightValue::_ge_(RightValue *other)
     {
-        throwTypeMismatchError(">=", getNodeClass(), other->getNodeClass());
+        Error::InvalidOperationError(getValueType(), Operator::GE, other->getValueType()).error();
         return nullptr;
     }
 
     DirectRightValue *DirectRightValue::_pos_()
     {
-        throwTypeMismatchError("+", getNodeClass());
+        Error::InvalidOperationError(getValueType(), Operator::POS).error();
         return nullptr;
     }
 
     DirectRightValue *DirectRightValue::_neg_()
     {
-        throwTypeMismatchError("-", getNodeClass());
+        Error::InvalidOperationError(getValueType(), Operator::NEG).error();
         return nullptr;
     }
 
     DirectRightValue *DirectRightValue::_not_()
     {
-        throwTypeMismatchError("!", getNodeClass());
+        Error::InvalidOperationError(getValueType(), Operator::NOT).error();
         return nullptr;
     }
 
     ValueType DirectRightValue::_add_type_(ValueType other)
     {
-        throwTypeMismatchError("+", getValueType(), other);
+        Error::InvalidOperationError(getValueType(), Operator::ADD, other).error();
         return ValueType::VOID;
     }
 
     ValueType DirectRightValue::_sub_type_(ValueType other)
     {
-        throwTypeMismatchError("-", getValueType(), other);
+        Error::InvalidOperationError(getValueType(), Operator::SUB, other).error();
         return ValueType::VOID;
     }
 
     ValueType DirectRightValue::_mul_type_(ValueType other)
     {
-        throwTypeMismatchError("*", getValueType(), other);
+        Error::InvalidOperationError(getValueType(), Operator::MUL, other).error();
         return ValueType::VOID;
     }
 
     ValueType DirectRightValue::_div_type_(ValueType other)
     {
-        throwTypeMismatchError("/", getValueType(), other);
+        Error::InvalidOperationError(getValueType(), Operator::DIV, other).error();
         return ValueType::VOID;
     }
 
     ValueType DirectRightValue::_mod_type_(ValueType other)
     {
-        throwTypeMismatchError("%", getValueType(), other);
+        Error::InvalidOperationError(getValueType(), Operator::MOD, other).error();
         return ValueType::VOID;
     }
 
     ValueType DirectRightValue::_and_type_(ValueType other)
     {
-        throwTypeMismatchError("&&", getValueType(), other);
+        Error::InvalidOperationError(getValueType(), Operator::AND, other).error();
         return ValueType::VOID;
     }
 
     ValueType DirectRightValue::_or_type_(ValueType other)
     {
-        throwTypeMismatchError("||", getValueType(), other);
+        Error::InvalidOperationError(getValueType(), Operator::OR, other).error();
         return ValueType::VOID;
     }
 
     ValueType DirectRightValue::_eq_type_(ValueType other)
     {
-        throwTypeMismatchError("==", getValueType(), other);
+        Error::InvalidOperationError(getValueType(), Operator::EQ, other).error();
         return ValueType::VOID;
     }
 
     ValueType DirectRightValue::_ne_type_(ValueType other)
     {
-        throwTypeMismatchError("!=", getValueType(), other);
+        Error::InvalidOperationError(getValueType(), Operator::NE, other).error();
         return ValueType::VOID;
     }
-
     ValueType DirectRightValue::_lt_type_(ValueType other)
     {
-        throwTypeMismatchError("<", getValueType(), other);
+        Error::InvalidOperationError(getValueType(), Operator::LT, other).error();
         return ValueType::VOID;
     }
 
     ValueType DirectRightValue::_le_type_(ValueType other)
     {
-        throwTypeMismatchError("<=", getValueType(), other);
+        Error::InvalidOperationError(getValueType(), Operator::LE, other).error();
         return ValueType::VOID;
     }
 
     ValueType DirectRightValue::_gt_type_(ValueType other)
     {
-        throwTypeMismatchError(">", getValueType(), other);
+        Error::InvalidOperationError(getValueType(), Operator::GT, other).error();
         return ValueType::VOID;
     }
 
     ValueType DirectRightValue::_ge_type_(ValueType other)
     {
-        throwTypeMismatchError(">=", getValueType(), other);
+        Error::InvalidOperationError(getValueType(), Operator::GE, other).error();
         return ValueType::VOID;
     }
 
     ValueType DirectRightValue::_pos_type_()
     {
-        throwTypeMismatchError("+", getValueType());
+        Error::InvalidOperationError(getValueType(), Operator::POS).error();
         return ValueType::VOID;
     }
 
     ValueType DirectRightValue::_neg_type_()
     {
-        throwTypeMismatchError("-", getValueType());
+        Error::InvalidOperationError(getValueType(), Operator::NEG).error();
         return ValueType::VOID;
     }
 
     ValueType DirectRightValue::_not_type_()
     {
-        throwTypeMismatchError("!", getValueType());
+        Error::InvalidOperationError(getValueType(), Operator::NOT).error();
         return ValueType::VOID;
     }
 
@@ -457,7 +469,8 @@ namespace SED::AST
             {
                 if (((Int32 *)otherDirect)->getValue() == 0)
                 {
-                    throw std::runtime_error("Division by zero");
+                    Error::DivisionByZeroError().error();
+                    return nullptr;
                 }
                 return (new Int32())->setValue(value.value() / ((Int32 *)otherDirect)->getValue());
             }
@@ -483,7 +496,8 @@ namespace SED::AST
             {
                 if (((Int32 *)otherDirect)->getValue() == 0)
                 {
-                    throw std::runtime_error("Division by zero");
+                    Error::DivisionByZeroError().error();
+                    return nullptr;
                 }
                 return (new Int32())->setValue(value.value() % ((Int32 *)otherDirect)->getValue());
             }
@@ -807,7 +821,8 @@ namespace SED::AST
             {
                 if (((Float32 *)otherDirect)->getValue() == 0)
                 {
-                    throw std::runtime_error("Division by zero");
+                    Error::DivisionByZeroError().error();
+                    return nullptr;
                 }
                 return (new Float32())->setValue(value.value() / ((Float32 *)otherDirect)->getValue());
             }
@@ -1860,8 +1875,7 @@ namespace SED::AST
         try{
             directify()->interpret();
         }catch(std::runtime_error &e){
-            dump("Variable: " + name, Error::ErrorType::INFO);
-            dump(e.what(), Error::ErrorType::WARNING);
+            std::cerr<<"Variable: "<<name<<std::endl;
         }
     }
 
@@ -1871,7 +1885,7 @@ namespace SED::AST
         {
             return true;
         }
-        dump("Variable: " + name + " is not defined", Error::ErrorType::WARNING);
+        Error::UndefinedVariableError(name).error();
         return false;
     }
 
@@ -1949,8 +1963,7 @@ namespace SED::AST
         try{
             directify()->interpret();
         }catch(std::runtime_error &e){
-            dump("FunctionCall: " + name, Error::ErrorType::INFO);
-            dump(e.what(), Error::ErrorType::WARNING);
+            std::cerr << "FunctionCall: " << name << std::endl;
         }
     }
 

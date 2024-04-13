@@ -115,7 +115,14 @@ DefList:
 
 Stmt:
      {  }
-    | Stmt PRINT LPAREN Exp RPAREN SEMICOLON {$4->interpret();}
+    | Stmt PRINT LPAREN Exp RPAREN SEMICOLON {
+        try{
+            $4->interpret();
+        }catch(std::runtime_error& e){
+            std::cerr << e.what() << std::endl;
+            break;
+        }
+    }
     | Stmt DeclList { 
         for (auto decl : $2) {
             decl->interpret();
@@ -124,19 +131,12 @@ Stmt:
     }
     | Stmt BREAK SEMICOLON { 
         (new SED::AST::BreakStatement())->interpret();
-    
     }
     | Stmt LIST SEMICOLON { 
-        analyzerContext.list();
-        
+        analyzerContext.list(); 
     }
     | Stmt Exp SEMICOLON { 
-        try{
-            $2->interpret();
-        }catch(std::runtime_error& e){
-            $2->dump(e.what(), SED::Error::ErrorType::WARNING);
-            break;
-        }
+        (new SED::AST::ExpressionStatement())->setValue($2)->interpret();
     }
     | Stmt SEMICOLON { 
         
@@ -148,10 +148,9 @@ Stmt:
         try{
             (new SED::AST::Assignment())->setVariable($2)->setValue($4)->interpret();
         }catch(std::runtime_error& e){
-            $4->dump(e.what(), SED::Error::ErrorType::WARNING);
+            std::cerr << e.what() << std::endl;
             break;
         }
-        
     }
     ;
 
@@ -195,13 +194,31 @@ UnaryExp:
         $$ = (new SED::AST::Unary())->setOp($1)->setExpr($2);
     } 
     | LPAREN TYPE_INT RPAREN UnaryExp {
-        $$ = $4->asInt32();
+        try{
+            $$ = $4->asInt32();
+        }catch(std::runtime_error& e){
+            std::cerr << e.what() << std::endl;
+            $$ = $4;
+            break;
+        }
     }
     | LPAREN TYPE_FLOAT RPAREN UnaryExp { 
-        $$ = $4->asFloat32();
+        try{
+            $$ = $4->asFloat32();
+        }catch(std::runtime_error& e){
+            std::cerr << e.what() << std::endl;
+            $$ = $4;
+            break;
+        }
     }
     | LPAREN TYPE_BOOL RPAREN UnaryExp { 
-        $$ = $4->asBoolean(); 
+        try{
+            $$ = $4->asBoolean();
+        }catch(std::runtime_error& e){
+            std::cerr << e.what() << std::endl;
+            $$ = $4;
+            break;
+        }
     }
     ;
 
