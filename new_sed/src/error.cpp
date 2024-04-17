@@ -38,6 +38,7 @@ namespace SED::Error
     void Error::error()
     {
         std::cerr << "\033[31m" << CodeEnumMapToString(code) << ": \033[0m" << message << std::endl;
+        exit(1);
     }
 
     void Error::debug()

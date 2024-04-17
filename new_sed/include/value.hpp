@@ -128,6 +128,8 @@ namespace SED::AST
         virtual bool isDirect() = 0;
 
         virtual DirectRightValue *directify() = 0;
+
+        void analyze() override;
     };
 
     class DirectRightValue : public RightValue
@@ -221,6 +223,8 @@ namespace SED::AST
         virtual bool isPointer();
 
         virtual bool isVoid();
+
+        virtual std::string toIRString() = 0;
     };
 
     class Int32 : public DirectRightValue
@@ -229,7 +233,7 @@ namespace SED::AST
 
     public:
         explicit Int32();
-
+        std::string toIRString() override;
         void toMermaid() override;
         void toIR() override;
 
@@ -307,7 +311,7 @@ namespace SED::AST
 
     public:
         explicit Float32();
-
+        std::string toIRString() override;
         void toMermaid() override;
         void toIR() override;
 
@@ -385,7 +389,7 @@ namespace SED::AST
 
         void toMermaid() override;
         void toIR() override;
-
+        std::string toIRString() override;
         bool isDirect() override;
 
         ValueType getValueType() override;
@@ -429,7 +433,7 @@ namespace SED::AST
 
     public:
         explicit Pointer();
-
+        std::string toIRString() override;
         void toMermaid() override;
         void toIR() override;
 
@@ -481,6 +485,7 @@ namespace SED::AST
 
         void toMermaid() override;
         void toIR() override;
+        std::string toIRString() override;
 
         ValueType getValueType() override;
 

@@ -98,4 +98,14 @@ namespace SED::Context
         Error::UndeclaredFunctionError(name).error();
         return AST::ValueType::VOID;
     }
+
+    void AnalyzerContext::enter()
+    {
+        variables.push_back(std::map<std::string, AST::DirectRightValue *>());
+    }
+
+    void AnalyzerContext::exit()
+    {
+        variables.pop_back();
+    }
 }

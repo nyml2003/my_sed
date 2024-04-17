@@ -22,6 +22,8 @@ namespace SED {
             bool exists(AST::Variable *variable);
             bool exists(std::string name);
             void set(AST::Variable *variable, AST::DirectRightValue *value);
+            void enter();
+            void exit();
         };
     }
 }

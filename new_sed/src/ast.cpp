@@ -76,8 +76,9 @@ namespace SED::AST
 
     void VariableDeclaration::toIR(){
         irs.push_back((new IR::Var())->setName(variable->getName()));
-        value->toIR();
-        irs.push_back((new IR::Assign())->setLeftValue(variable->getName())->setRightValue(getRegister()));
+            value->toIR();
+            irs.push_back((new IR::Assign())->setLeftValue(variable->getName())->setRightValue(getRegister()));
+        
     }
 
     VariableDeclaration *VariableDeclaration::setVariable(Variable *_variable)
@@ -124,6 +125,24 @@ namespace SED::AST
         return isConst;
     }
 
+    void VariableDeclaration::analyze(){
+        if (analyzerContext.exists(variable) == true){
+            Error::VariableRedeclarationError(variable->getName()).error();
+            return;
+        }
+        if (value != nullptr){
+            if (value->getValueType() != type){
+                Error::TypeMismatchError(type, value->getValueType()).error();
+                return;
+            }
+            if (value->isDirect()){
+                value = value->directify();
+                analyzerContext.add(variable, value->directify());
+            }
+        }
+        return;
+    }
+
     /*---------------------Assignment---------------------*/
 
     Assignment::Assignment() : Node(NodeClass::ASSIGNMENT) {}
@@ -153,8 +172,11 @@ namespace SED::AST
     }
 
     void Assignment::toIR(){
-        value->toIR();
-        irs.push_back((new IR::Assign())->setLeftValue(variable->getName())->setRightValue(getRegister()));
+
+            value->toIR();
+            irs.push_back((new IR::Assign())->setLeftValue(variable->getName())->setRightValue(getRegister()));
+        
+        
     }
 
     Variable *Assignment::getVariable() const
@@ -167,6 +189,21 @@ namespace SED::AST
         return value;
     }
 
+    void Assignment::analyze(){
+        if (analyzerContext.exists(variable) == false){
+            Error::UndeclaredVariableError(variable->getName()).error();
+            return;
+        }
+        if (analyzerContext.get(variable)->getValueType() != value->getValueType()){
+            Error::TypeMismatchError(analyzerContext.get(variable)->getValueType(), value->getValueType()).error();
+            return;
+        }
+        if (value->isDirect()){
+            value = value->directify();
+            analyzerContext.set(variable, value->directify());
+        }
+    }
+
     /*---------------------BreakStatement---------------------*/
 
     BreakStatement::BreakStatement() : Node(NodeClass::BREAK_STATEMENT) {}
@@ -177,6 +214,10 @@ namespace SED::AST
     }
 
     void BreakStatement::toIR(){
+        ;
+    }
+
+    void BreakStatement::analyze(){
         ;
     }
 
@@ -222,6 +263,14 @@ namespace SED::AST
         return returnType;
     }
 
+    void FunctionDeclaration::analyze(){
+        if (analyzerContext.exists(name))
+        {
+            Error::FunctionRedeclarationError(name).error();
+        }
+        analyzerContext.add(name, returnType);
+    }
+
     /*---------------------ExpressionStatement---------------------*/
 
     ExpressionStatement::ExpressionStatement() : Node(NodeClass::EXPRESSION_STATEMENT) {}
@@ -248,6 +297,12 @@ namespace SED::AST
 
     void ExpressionStatement::toIR(){
         value->toIR();
+    }
+
+    void ExpressionStatement::analyze(){
+        if (value->isDirect()){
+            value = value->directify();
+        }
     }
 
     /*---------------------COMPILAION_UNIT---------------------*/
@@ -290,6 +345,13 @@ namespace SED::AST
         }
     }
 
+    void CompilationUnit::analyze(){
+        for (auto &node : nodes)
+        {
+            node->analyze();
+        }
+    }
+
     /*---------------------Block---------------------*/
 
     Block::Block() : Node(NodeClass::BLOCK) {}
@@ -304,6 +366,15 @@ namespace SED::AST
             putEdge(id, getCounter(), NodeClassEnumMap[node->getNodeClass()]);
             node->toMermaid();
         }
+    }
+
+    void Block::analyze(){
+        analyzerContext.enter();
+        for (auto &node : nodes)
+        {
+            node->analyze();
+        }
+        analyzerContext.exit();
     }
 
     void Block::toIR(){
@@ -338,6 +409,15 @@ namespace SED::AST
         count();
         putEdge(id, getCounter(), "函数体");
         block->toMermaid();
+    }
+
+    void FunctionDefinition::analyze(){
+        if (analyzerContext.exists(declaration->getName()))
+        {
+            Error::FunctionRedeclarationError(declaration->getName()).error();
+        }
+        analyzerContext.add(declaration->getName(), declaration->getReturnType());
+        block->analyze();
     }
 
     void FunctionDefinition::toIR(){
@@ -379,6 +459,12 @@ namespace SED::AST
         return value;
     }
 
+    void ReturnStatement::analyze(){
+        if (value->isDirect()){
+            value = value->directify();
+        }
+    }
+
     void ReturnStatement::toMermaid()
     {
         size_t id = getCounter();
@@ -389,7 +475,10 @@ namespace SED::AST
     }
 
     void ReturnStatement::toIR(){
-        value->toIR();
-        irs.push_back((new IR::Return())->setVar(registerWrapper(getRegister())));
+    
+            value->toIR();
+            irs.push_back((new IR::Return())->setVar(registerWrapper(getRegister())));
+        
+        
     }
 }

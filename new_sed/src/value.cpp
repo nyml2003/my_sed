@@ -8,6 +8,12 @@ namespace SED::AST
 
     /*RightValue*/
 
+    void RightValue::analyze()
+    {
+        throw std::runtime_error("Not implemented");
+    }
+
+
     std::string ValueTypeEnumMapToString(ValueType valueType){
         return ValueTypeEnumMap[valueType];
     }
@@ -348,6 +354,11 @@ namespace SED::AST
         return value.has_value() ? value.value() : 0;
     }
 
+    std::string Int32::toIRString()
+    {
+        return std::to_string(value.value());
+    }
+
     void Int32::toMermaid()
     {
         size_t int32_id = getCounter();
@@ -667,6 +678,11 @@ namespace SED::AST
     /*Float32*/
 
     Float32::Float32() : DirectRightValue(NodeClass::FLOAT_32) {}
+
+    std::string Float32::toIRString()
+    {
+        return std::to_string(value.value());
+    }
 
     bool Float32::isDirect()
     {
@@ -1005,6 +1021,15 @@ namespace SED::AST
         return this;
     }
 
+    std::string Boolean::toIRString()
+    {
+        if (value.has_value())
+        {
+            return value.value() ? "true" : "false";
+        }
+        return "null";
+    }
+
     DirectRightValue* Boolean::asBoolean()
     {
         return this;
@@ -1210,6 +1235,11 @@ namespace SED::AST
     }
 
     Pointer::Pointer() : DirectRightValue(NodeClass::POINTER) {}
+
+    std::string Pointer::toIRString()
+    {
+        return std::to_string((size_t)value);
+    }
 
     ValueType Pointer::getValueType()
     {
@@ -1932,6 +1962,11 @@ namespace SED::AST
         putLabel(getNodeClass());
         count();
         putEdge(void_id, getCounter(), "void");
+    }
+
+    std::string Void::toIRString()
+    {
+        return "void";
     }
 
     void Void::toIR()

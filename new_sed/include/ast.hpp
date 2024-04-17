@@ -8,6 +8,7 @@
 #include "location.hh"
 #include "error.hpp"
 #include "ir.hpp"
+#include "analyzer.hpp"
 
 namespace SED::AST
 {
@@ -39,7 +40,7 @@ namespace SED::AST
     extern std::map<NodeClass, std::string> NodeClassEnumMap;
     extern std::string NodeClassEnumMapToString(NodeClass nodeClass);
 
-    class Node : public Generator::MermaidGenerator, public Generator::IRGenerator
+    class Node : public Generator::MermaidGenerator, public Generator::IRGenerator, public Analyzer::Analyzable
     {   
         NodeClass nodeClass;
     public:
@@ -48,6 +49,7 @@ namespace SED::AST
         Node(NodeClass _nodeClass);
         virtual void toMermaid() = 0;
         virtual void toIR() = 0;
+        virtual void analyze() = 0;
         NodeClass getNodeClass() const;
     };
 
@@ -80,6 +82,8 @@ namespace SED::AST
         void toMermaid() override;
 
         void toIR() override;
+
+        void analyze() override;
     };
 
     class Assignment : public Node
@@ -102,6 +106,7 @@ namespace SED::AST
 
         RightValue *getValue() const;
 
+        void analyze() override;
     };
 
     class BreakStatement : public Node
@@ -111,6 +116,7 @@ namespace SED::AST
         void toMermaid() override;
 
         void toIR() override;
+        void analyze() override;
     };
 
     class FunctionDeclaration : public Node
@@ -126,6 +132,7 @@ namespace SED::AST
         std::string getName() const;
         void toMermaid() override;
         void toIR() override;
+        void analyze() override;
     };
 
     class ExpressionStatement : public Node
@@ -137,6 +144,7 @@ namespace SED::AST
         RightValue *getValue() const;
         void toMermaid() override;
         void toIR() override;
+        void analyze() override;
     };
 
     class CompilationUnit : public Node
@@ -148,6 +156,7 @@ namespace SED::AST
         std::vector<Node *> getNodes() const;
         void toMermaid() override;
         void toIR() override;
+        void analyze() override;
     };
 
     class Block : public Node
@@ -159,6 +168,7 @@ namespace SED::AST
         std::vector<Node *> getNodes() const;
         void toMermaid() override;
         void toIR() override;
+        void analyze() override;
     };
 
     class FunctionDefinition : public Node
@@ -173,6 +183,7 @@ namespace SED::AST
         Block *getBlock() const;
         void toMermaid() override;
         void toIR() override;
+        void analyze() override;
     };
 
     class ReturnStatement : public Node
@@ -184,6 +195,7 @@ namespace SED::AST
         RightValue *getValue() const;
         void toMermaid() override;
         void toIR() override;
+        void analyze() override;
     };
 };
 
