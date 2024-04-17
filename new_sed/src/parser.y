@@ -85,10 +85,10 @@ DeclList :
             }else{
                 switch ($1) {
                     case SED::AST::ValueType::INT_32:
-                        decl->setValue(new SED::AST::Int32());
+                        decl->setValue((new SED::AST::Int32()));
                         break;
                     case SED::AST::ValueType::FLOAT_32:
-                        decl->setValue(new SED::AST::Float32());
+                        decl->setValue((new SED::AST::Float32()));
                         break;
                     case SED::AST::ValueType::BOOLEAN:
                         decl->setValue(new SED::AST::Boolean());

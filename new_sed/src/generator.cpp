@@ -127,11 +127,15 @@ namespace SED::Generator {
 
     size_t IRGenerator::registerCounter = 0;
 
-    std::string IRGenerator::getRegister() {
-        return "r" + std::to_string(registerCounter);
+    size_t IRGenerator::getRegister() {
+        return registerCounter;
     }
 
     void IRGenerator::nextRegister() {
         registerCounter++;
+    }
+
+    std::string IRGenerator::registerWrapper(size_t register_id) {
+        return "%" + std::to_string(register_id);
     }
 }

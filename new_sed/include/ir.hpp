@@ -1,9 +1,15 @@
+#ifndef SED_IR_HPP
+
+
+#define SED_IR_HPP
+
+
 #include "ast.hpp"
 namespace SED::IR{
     class Statement{
+        
     public:
         virtual void output() = 0;
-        
     };
 
     class Var : public Statement{
@@ -15,13 +21,15 @@ namespace SED::IR{
     };
 
     class Assign : public Statement{
-        std::string leftVar;
-        std::string rightVar;
+        std::string leftValue;
+        std::string rightValue;
     public:
-        Assign* setLeftVar(const std::string& _leftVar);
-        Assign* setRightVar(const std::string& _rightVar);
-        std::string getLeftVar() const;
-        std::string getRightVar() const;
+        Assign* setLeftValue(const std::string& _leftValue);
+        Assign* setLeftValue(size_t _register_id);
+        Assign* setRightValue(const std::string& _rightValue);
+        Assign* setRightValue(size_t _register_id);
+        std::string getLeftValue() const;
+        std::string getRightValue() const;
         void output() override;
     };
 
@@ -34,32 +42,32 @@ namespace SED::IR{
     };
 
     class AssignUnary : public Statement{
-        std::string leftVar;
-        std::string rightVar;
+        size_t registerSource;
+        size_t registerDestination;
         std::string op;
     public:
-        AssignUnary* setLeftVar(const std::string& _leftVar);
-        AssignUnary* setRightVar(const std::string& _rightVar);
+        AssignUnary* setRegisterSource(size_t _registerSource);
+        AssignUnary* setRegisterDestination(size_t _registerDestination);
         AssignUnary* setOp(const std::string& _op);
-        std::string getLeftVar() const;
-        std::string getRightVar() const;
+        size_t getRegisterSource() const;
+        size_t getRegisterDestination() const;
         std::string getOp() const;
         void output() override;
     };
 
     class AssignBinary : public Statement{
-        std::string leftVar;
-        std::string rightVar1;
-        std::string rightVar2;
         std::string op;
+        size_t registerSource;
+        size_t registerDestination;
+        size_t registerTarget;
     public:
-        AssignBinary* setLeftVar(const std::string& _leftVar);
-        AssignBinary* setRightVar1(const std::string& _rightVar1);
-        AssignBinary* setRightVar2(const std::string& _rightVar2);
+        AssignBinary* setRegisterSource(size_t _registerSource);
+        AssignBinary* setRegisterDestination(size_t _registerDestination);
+        AssignBinary* setRegisterTarget(size_t _registerTarget);
         AssignBinary* setOp(const std::string& _op);
-        std::string getLeftVar() const;
-        std::string getRightVar1() const;
-        std::string getRightVar2() const;
+        size_t getRegisterSource() const;
+        size_t getRegisterDestination() const;
+        size_t getRegisterTarget() const;
         std::string getOp() const;
         void output() override;
     };
@@ -85,3 +93,4 @@ namespace SED::IR{
 
 };
 inline std::vector<SED::IR::Statement *> irs;
+#endif // !SED_IR_HPP

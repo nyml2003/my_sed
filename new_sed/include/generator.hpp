@@ -3,6 +3,7 @@
 
 #include <string>
 #include <map>
+#include <stack>
 
 namespace SED::AST{
     enum class Operator;
@@ -51,8 +52,9 @@ namespace SED::Generator {
         static size_t registerCounter;
     public:
         virtual void toIR() = 0;
-        static std::string getRegister();
+        static size_t getRegister();
         static void nextRegister();
+        static std::string registerWrapper (size_t register_id);
     };
 }
 

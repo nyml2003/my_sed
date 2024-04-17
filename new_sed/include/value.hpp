@@ -31,13 +31,14 @@ namespace SED::AST
     extern std::map<Operator, std::string> OperatorEnumMap;
     extern std::string OperatorEnumMapToString(Operator op);
 
-    enum class ValueType
+        enum class ValueType
     {
         INT_32,
         FLOAT_32,
         BOOLEAN,
         POINTER,
-        VOID
+        VOID,
+        UNKNOWN
     };
 
     extern std::map<ValueType, std::string> ValueTypeEnumMap;
@@ -230,7 +231,6 @@ namespace SED::AST
         explicit Int32();
 
         void toMermaid() override;
-
         void toIR() override;
 
         ValueType getValueType() override;
@@ -309,7 +309,6 @@ namespace SED::AST
         explicit Float32();
 
         void toMermaid() override;
-
         void toIR() override;
 
         ValueType getValueType() override;
@@ -572,7 +571,6 @@ namespace SED::AST
         ValueType getValueType() override = 0;
 
         void toMermaid() override = 0;
-        void toIR() override;
     };
 
     class Binary : public IndirectRightValue

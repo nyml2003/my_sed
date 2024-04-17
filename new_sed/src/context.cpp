@@ -34,7 +34,7 @@ namespace SED::Context
                 return it->at(name);
             }
         }
-        Error::UndefinedVariableError(name).error();
+        Error::UndeclaredVariableError(name).error();
         return nullptr;
     }
 
@@ -62,9 +62,8 @@ namespace SED::Context
                 return;
             }
         }
-        Error::UndefinedVariableError(name).error();
+        Error::UndeclaredVariableError(name).error();
     }
-
 
     void AnalyzerContext::add(std::string name, AST::ValueType type)
     {
@@ -96,7 +95,7 @@ namespace SED::Context
                 return it->at(name);
             }
         }
-        Error::UndefinedFunctionError(name).error();
+        Error::UndeclaredFunctionError(name).error();
         return AST::ValueType::VOID;
     }
 }

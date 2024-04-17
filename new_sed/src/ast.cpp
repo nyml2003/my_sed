@@ -76,6 +76,8 @@ namespace SED::AST
 
     void VariableDeclaration::toIR(){
         irs.push_back((new IR::Var())->setName(variable->getName()));
+        value->toIR();
+        irs.push_back((new IR::Assign())->setLeftValue(variable->getName())->setRightValue(getRegister()));
     }
 
     VariableDeclaration *VariableDeclaration::setVariable(Variable *_variable)
@@ -151,8 +153,8 @@ namespace SED::AST
     }
 
     void Assignment::toIR(){
-        irs.push_back((new IR::Assign())->setLeftVar(variable->getName())->setRightVar(getRegister()));
         value->toIR();
+        irs.push_back((new IR::Assign())->setLeftValue(variable->getName())->setRightValue(getRegister()));
     }
 
     Variable *Assignment::getVariable() const
@@ -244,6 +246,10 @@ namespace SED::AST
         value->toMermaid();
     }
 
+    void ExpressionStatement::toIR(){
+        value->toIR();
+    }
+
     /*---------------------COMPILAION_UNIT---------------------*/
 
     CompilationUnit::CompilationUnit() : Node(NodeClass::COMPILATION_UNIT) {}
@@ -271,6 +277,17 @@ namespace SED::AST
     std::vector<Node *> CompilationUnit::getNodes() const
     {
         return nodes;
+    }
+
+    void CompilationUnit::toIR(){
+        for (auto &node : nodes)
+        {
+            node->toIR();
+        }
+        for (auto &ir : irs)
+        {
+            ir->output();
+        }
     }
 
     /*---------------------Block---------------------*/
@@ -372,6 +389,7 @@ namespace SED::AST
     }
 
     void ReturnStatement::toIR(){
-        irs.push_back((new IR::Return())->setVar(getRegister()));
+        value->toIR();
+        irs.push_back((new IR::Return())->setVar(registerWrapper(getRegister())));
     }
 }

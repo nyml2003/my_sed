@@ -368,7 +368,12 @@ namespace SED::AST
 
     void Int32::toIR()
     {
-        irs.push_back((new IR::Int32())->setValue(value.value()));
+        nextRegister();
+        if (value.has_value()){
+            irs.push_back((new IR::Assign())->setLeftValue(registerWrapper(getRegister()))->setRightValue(std::to_string(value.value())));
+        }else{
+            irs.push_back((new IR::Assign())->setLeftValue(registerWrapper(getRegister()))->setRightValue("null"));
+        }
     }
 
     Int32 *Int32::setValue(int32_t _value)
@@ -718,6 +723,15 @@ namespace SED::AST
         count();
     }
 
+    void Float32::toIR()
+    {
+        nextRegister();
+        if (value.has_value()){
+            irs.push_back((new IR::Assign())->setLeftValue(registerWrapper(getRegister()))->setRightValue(std::to_string(value.value())));
+        }else{
+            irs.push_back((new IR::Assign())->setLeftValue(registerWrapper(getRegister()))->setRightValue("null"));
+        }
+    }
 
     Float32 *Float32::setValue(float _value)
     {
@@ -1054,6 +1068,16 @@ namespace SED::AST
         count();
     }
 
+    void Boolean::toIR()
+    {
+        nextRegister();
+        if (value.has_value()){
+            irs.push_back((new IR::Assign())->setLeftValue(registerWrapper(getRegister()))->setRightValue(value.value() ? "true" : "false"));
+        }else{
+            irs.push_back((new IR::Assign())->setLeftValue(registerWrapper(getRegister()))->setRightValue("null"));
+        }
+    }
+
 
     bool Boolean::isBoolean()
     {
@@ -1173,6 +1197,16 @@ namespace SED::AST
         putLabel(std::to_string((size_t)value));
         putEdge(pointer_id, value_id, "value");
         count();
+    }
+
+    void Pointer::toIR()
+    {
+        nextRegister();
+        if (value != nullptr){
+            irs.push_back((new IR::Assign())->setLeftValue(registerWrapper(getRegister()))->setRightValue(std::to_string((size_t)value)));
+        }else{
+            irs.push_back((new IR::Assign())->setLeftValue(registerWrapper(getRegister()))->setRightValue("null"));
+        }
     }
 
     Pointer::Pointer() : DirectRightValue(NodeClass::POINTER) {}
@@ -1620,6 +1654,24 @@ namespace SED::AST
         putEdge(binary_id, op_id, "op");
     }
 
+    void Binary::toIR()
+    {
+        
+        
+        left->toIR();
+        size_t left_id = getRegister();
+        right->toIR();
+        size_t right_id = getRegister();
+        nextRegister();
+        size_t binary_id = getRegister();
+        irs.push_back(
+            (new IR::AssignBinary())
+                ->setRegisterDestination(binary_id)
+                ->setRegisterSource(left_id)
+                ->setRegisterTarget(right_id)
+                ->setOp(OperatorEnumMapToString(op)));
+    }
+
 
 
     DirectRightValue *Binary::directify()
@@ -1747,6 +1799,14 @@ namespace SED::AST
         putEdge(unary_id, op_id, "op");
     }
 
+    void Unary::toIR()
+    {
+        size_t unary_id = getRegister();
+        expr->toIR();
+        nextRegister();
+        irs.push_back((new IR::AssignUnary())->setRegisterSource(getRegister())->setOp(OperatorEnumMapToString(op))->setRegisterDestination(unary_id));
+    }
+
     
 
     DirectRightValue *Unary::directify()
@@ -1829,6 +1889,11 @@ namespace SED::AST
         putEdge(variable_id, name_id, "name");
     }
 
+    void Variable::toIR()
+    {
+        nextRegister();
+        irs.push_back((new IR::Assign())->setLeftValue(registerWrapper(getRegister()))->setRightValue(name));
+    }
     
 
     bool Variable::isDirect()
@@ -1837,7 +1902,7 @@ namespace SED::AST
         {
             return true;
         }
-        Error::UndefinedVariableError(name).error();
+        Error::UndeclaredVariableError(name).error();
         return false;
     }
 
@@ -1867,6 +1932,12 @@ namespace SED::AST
         putLabel(getNodeClass());
         count();
         putEdge(void_id, getCounter(), "void");
+    }
+
+    void Void::toIR()
+    {
+        nextRegister();
+        irs.push_back((new IR::Assign())->setLeftValue(registerWrapper(getRegister()))->setRightValue("void"));
     }
 
 
@@ -1904,6 +1975,11 @@ namespace SED::AST
         size_t name_id = getCounter();
         putLabel(name);
         putEdge(functionCall_id, name_id, "name");
+    }
+
+    void FunctionCall::toIR()
+    {
+        ; // TODO
     }
 
 

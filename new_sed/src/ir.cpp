@@ -12,71 +12,95 @@ namespace SED::IR{
         std::cout << "var " << name << std::endl;
     }
 
-    Assign* Assign::setLeftVar(const std::string& _leftVar){
-        leftVar = _leftVar;
+    Assign* Assign::setLeftValue(const std::string& _leftValue){
+        leftValue = _leftValue;
         return this;
     }
-    Assign* Assign::setRightVar(const std::string& _rightVar){
-        rightVar = _rightVar;
+
+    Assign* Assign::setLeftValue(size_t _register_id){
+        leftValue = "%" + std::to_string(_register_id);
         return this;
     }
-    std::string Assign::getLeftVar() const{
-        return leftVar;
+
+    Assign* Assign::setRightValue(const std::string& _rightValue){
+        rightValue = _rightValue;
+        return this;
     }
-    std::string Assign::getRightVar() const{
-        return rightVar;
+
+    Assign* Assign::setRightValue(size_t _register_id){
+        rightValue = "%" + std::to_string(_register_id);
+        return this;
     }
+
+    std::string Assign::getLeftValue() const{
+        return leftValue;
+    }
+
+    std::string Assign::getRightValue() const{
+        return rightValue;
+    }
+
     void Assign::output(){
-        std::cout << leftVar << " = " << rightVar << std::endl;
+        std::cout << leftValue << " = " << rightValue << std::endl;
     }
 
     Label* Label::setName(const std::string& _name){
         name = _name;
         return this;
     }
+
     std::string Label::getName() const{
         return name;
     }
+
     void Label::output(){
-        std::cout << "label " << name << std::endl;
+        std::cout << name << ":" << std::endl;
     }
 
-    AssignUnary* AssignUnary::setLeftVar(const std::string& _leftVar){
-        leftVar = _leftVar;
+    AssignUnary* AssignUnary::setRegisterSource(size_t _registerSource){
+        registerSource = _registerSource;
         return this;
     }
-    AssignUnary* AssignUnary::setRightVar(const std::string& _rightVar){
-        rightVar = _rightVar;
+
+    AssignUnary* AssignUnary::setRegisterDestination(size_t _registerDestination){
+        registerDestination = _registerDestination;
         return this;
     }
+
     AssignUnary* AssignUnary::setOp(const std::string& _op){
         op = _op;
         return this;
     }
-    std::string AssignUnary::getLeftVar() const{
-        return leftVar;
+
+    size_t AssignUnary::getRegisterSource() const{
+        return registerSource;
     }
-    std::string AssignUnary::getRightVar() const{
-        return rightVar;
+
+    size_t AssignUnary::getRegisterDestination() const{
+        return registerDestination;
     }
-    std::string AssignUnary::getOp() const{
+
+    std::string AssignUnary::getOp() const
+    {
         return op;
     }
+
     void AssignUnary::output(){
-        std::cout << leftVar << " = " << op << rightVar << std::endl;
+        std::cout << "%" + registerDestination << " = " << op << " " << "%" + registerSource << std::endl;
     }
 
-    AssignBinary* AssignBinary::setLeftVar(const std::string& _leftVar){
-        leftVar = _leftVar;
-        return this;
-    }
-    AssignBinary* AssignBinary::setRightVar1(const std::string& _rightVar1){
-        rightVar1 = _rightVar1;
+    AssignBinary* AssignBinary::setRegisterSource(size_t _registerSource){
+        registerSource = _registerSource;
         return this;
     }
 
-    AssignBinary* AssignBinary::setRightVar2(const std::string& _rightVar2){
-        rightVar2 = _rightVar2;
+    AssignBinary* AssignBinary::setRegisterDestination(size_t _registerDestination){
+        registerDestination = _registerDestination;
+        return this;
+    }
+
+    AssignBinary* AssignBinary::setRegisterTarget(size_t _registerTarget){
+        registerTarget = _registerTarget;
         return this;
     }
 
@@ -85,26 +109,24 @@ namespace SED::IR{
         return this;
     }
 
-    std::string AssignBinary::getLeftVar() const{
-        return leftVar;
+    size_t AssignBinary::getRegisterSource() const{
+        return registerSource;
     }
 
-    std::string AssignBinary::getRightVar1() const{
-        return rightVar1;
+    size_t AssignBinary::getRegisterDestination() const{
+        return registerDestination;
     }
 
-    std::string AssignBinary::getRightVar2() const{
-        return rightVar2;
+    size_t AssignBinary::getRegisterTarget() const{
+        return registerTarget;
     }
 
     std::string AssignBinary::getOp() const{
         return op;
     }
-
     void AssignBinary::output(){
-        std::cout << leftVar << " = " << rightVar1 << " " << op << " " << rightVar2 << std::endl;
+        std::cout << "%" << registerDestination << " = " << "%" << registerSource << " " << op << " " << "%" << registerTarget << std::endl;
     }
-
 
     void Start::output(){
         std::cout << "start" << std::endl;
@@ -126,4 +148,7 @@ namespace SED::IR{
     void Return::output(){
         std::cout << "return " << var << std::endl;
     }
+
+
+
 }

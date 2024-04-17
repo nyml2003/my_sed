@@ -9,7 +9,7 @@
 // 3.错误码
 namespace SED::Error
 {
-    class Error 
+    class Error
     {
     protected:
         enum class Type
@@ -29,6 +29,9 @@ namespace SED::Error
         std::string message;
         static std::map<Code, std::string> CodeEnumMap;
         static std::map<Type, std::string> TypeEnumMap;
+        static std::string CodeEnumMapToString(Code code);
+        static std::string TypeEnumMapToString(Type type);
+
     public:
         void info();
         void warning();
@@ -42,18 +45,17 @@ namespace SED::Error
         explicit TypeMismatchError(AST::ValueType type1, AST::ValueType type2);
     };
 
-    class UndefinedVariableError : public Error
+    class UndeclaredVariableError : public Error
     {
     public:
-        explicit UndefinedVariableError(std::string variable);
+        explicit UndeclaredVariableError(std::string variable);
     };
 
-    class UndefinedFunctionError : public Error
+    class UndeclaredFunctionError : public Error
     {
     public:
-        explicit UndefinedFunctionError(std::string function);
+        explicit UndeclaredFunctionError(std::string function);
     };
-
 
     class InvalidOperationError : public Error
     {
