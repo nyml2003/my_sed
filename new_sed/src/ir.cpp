@@ -9,7 +9,7 @@ namespace SED::IR{
         return name;
     }
     void Var::output(){
-        std::cout << "var " << name << std::endl;
+        std::cout << "\tvar " << name << std::endl;
     }
 
     Assign* Assign::setLeftValue(const std::string& _leftValue){
@@ -41,7 +41,7 @@ namespace SED::IR{
     }
 
     void Assign::output(){
-        std::cout << leftValue << " = " << rightValue << std::endl;
+        std::cout <<"\t"<< leftValue << " = " << rightValue << std::endl;
     }
 
     Label* Label::setName(const std::string& _name){
@@ -86,7 +86,7 @@ namespace SED::IR{
     }
 
     void AssignUnary::output(){
-        std::cout << "%" << registerDestination << " = " << op << " %" << registerSource << std::endl;
+        std::cout << "\t%" << registerDestination << " = " << op << " %" << registerSource << std::endl;
     }
 
     AssignBinary* AssignBinary::setRegisterSource(size_t _registerSource){
@@ -125,15 +125,17 @@ namespace SED::IR{
         return op;
     }
     void AssignBinary::output(){
-        std::cout << "%" << registerDestination << " = " << "%" << registerSource << " " << op << " " << "%" << registerTarget << std::endl;
+        std::cout << "\t%" << registerDestination << " = "
+                  << "%" << registerSource << " " << op << " "
+                  << "%" << registerTarget << std::endl;
     }
 
     void Start::output(){
-        std::cout << "start" << std::endl;
+        std::cout << "\tstart" << std::endl;
     }
 
     void End::output(){
-        std::cout << "end" << std::endl;
+        std::cout << "\tend" << std::endl;
     }
 
     Return* Return::setVar(const std::string& _var){
@@ -146,11 +148,11 @@ namespace SED::IR{
     }
 
     void Return::output(){
-        std::cout << "return " << var << std::endl;
+        std::cout << "\treturn " << var << std::endl;
     }
 
     void Goto::output(){
-        std::cout << "goto " << label << std::endl;
+        std::cout << "\tgoto " << label << std::endl;
     }
 
     Goto* Goto::setLabel(const std::string& _label){
@@ -163,7 +165,7 @@ namespace SED::IR{
     }
 
     void Ifz::output(){
-        std::cout << "ifz " << "%" << registerSource << " goto L" << label << std::endl;
+        std::cout << "\tifz " << "%" << registerSource << " goto L" << label << std::endl;
     }
 
     Ifz* Ifz::setRegisterSource(size_t _registerSource){

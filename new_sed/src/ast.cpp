@@ -549,13 +549,16 @@ namespace SED::AST
 
     void WhileStatement::toIR()
     {
-        irs.push_back((new IR::Label())->setName(labelWrapper(getLabel())));
-        condition->toIR();
         nextLabel();
-        irs.push_back((new IR::Ifz())->setRegisterSource(getRegister())->setLabel(getLabel()));
+        size_t startLabel = getLabel();
+        nextLabel();
+        size_t endLabel = getLabel();
+        irs.push_back((new IR::Label())->setName(labelWrapper(startLabel)));
+        condition->toIR();
+        irs.push_back((new IR::Ifz())->setRegisterSource(getRegister())->setLabel(endLabel));
         body->toIR();
-        irs.push_back((new IR::Goto())->setLabel(labelWrapper(getLabel() - 1)));
-        irs.push_back((new IR::Label())->setName(labelWrapper(getLabel())));
+        irs.push_back((new IR::Goto())->setLabel(labelWrapper(startLabel)));
+        irs.push_back((new IR::Label())->setName(labelWrapper(endLabel)));
     }
 
     void WhileStatement::analyze()
@@ -627,16 +630,19 @@ namespace SED::AST
     {
         condition->toIR();
         nextLabel();
-        irs.push_back((new IR::Ifz())->setRegisterSource(getRegister())->setLabel(getLabel()));
+        size_t ifz_label = getLabel();
+        irs.push_back((new IR::Ifz())->setRegisterSource(getRegister())->setLabel(ifz_label));
         thenBody->toIR();
         if (elseBody != nullptr)
         {
             nextLabel();
             irs.push_back((new IR::Goto())->setLabel(labelWrapper(getLabel())));
-            irs.push_back((new IR::Label())->setName(labelWrapper(getLabel() - 1)));
+            irs.push_back((new IR::Label())->setName(labelWrapper(ifz_label)));
             elseBody->toIR();
+            irs.push_back((new IR::Label())->setName(labelWrapper(getLabel())));
+        }else{
+            irs.push_back((new IR::Label())->setName(labelWrapper(ifz_label)));
         }
-        irs.push_back((new IR::Label())->setName(labelWrapper(getLabel())));
     }
 
     void IfStatement::analyze()
