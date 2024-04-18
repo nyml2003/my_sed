@@ -50,11 +50,15 @@ namespace SED::Generator {
 
     class IRGenerator {
         static size_t registerCounter;
+        static size_t labelCounter;
     public:
         virtual void toIR() = 0;
         static size_t getRegister();
         static void nextRegister();
+        static size_t getLabel();
+        static void nextLabel();
         static std::string registerWrapper (size_t register_id);
+        static std::string labelWrapper (size_t label_id);
     };
 }
 

@@ -24,8 +24,6 @@
 ")" {return yy::parser::make_RPAREN(loc);}
 "{" {return yy::parser::make_LBRACE(loc);}
 "}" {return yy::parser::make_RBRACE(loc);}
-"[" {return yy::parser::make_LBRACKET(loc);}
-"]" {return yy::parser::make_RBRACKET(loc);}
 "+" {return yy::parser::make_PLUS(loc);}
 "-" {return yy::parser::make_MINUS(loc);}
 "*" {return yy::parser::make_STAR(loc);}

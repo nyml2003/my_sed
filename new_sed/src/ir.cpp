@@ -54,7 +54,7 @@ namespace SED::IR{
     }
 
     void Label::output(){
-        std::cout << name << ":" << std::endl;
+        std::cout << "label " << name << std::endl;
     }
 
     AssignUnary* AssignUnary::setRegisterSource(size_t _registerSource){
@@ -86,7 +86,7 @@ namespace SED::IR{
     }
 
     void AssignUnary::output(){
-        std::cout << "%" + registerDestination << " = " << op << " " << "%" + registerSource << std::endl;
+        std::cout << "%" << registerDestination << " = " << op << " %" << registerSource << std::endl;
     }
 
     AssignBinary* AssignBinary::setRegisterSource(size_t _registerSource){
@@ -149,6 +149,39 @@ namespace SED::IR{
         std::cout << "return " << var << std::endl;
     }
 
+    void Goto::output(){
+        std::cout << "goto " << label << std::endl;
+    }
 
+    Goto* Goto::setLabel(const std::string& _label){
+        label = _label;
+        return this;
+    }
+
+    std::string Goto::getLabel() const{
+        return label;
+    }
+
+    void Ifz::output(){
+        std::cout << "ifz " << "%" << registerSource << " goto L" << label << std::endl;
+    }
+
+    Ifz* Ifz::setRegisterSource(size_t _registerSource){
+        registerSource = _registerSource;
+        return this;
+    }
+
+    Ifz* Ifz::setLabel(size_t _label){
+        label = _label;
+        return this;
+    }
+
+    size_t Ifz::getRegisterSource() const{
+        return registerSource;
+    }
+
+    size_t Ifz::getLabel() const{
+        return label;
+    }
 
 }

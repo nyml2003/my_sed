@@ -82,6 +82,14 @@ namespace SED::Error
         explicit DivisionByZeroError();
     };
 
+    // 条件语句中的条件表达式不是bool类型
+    class ConditionNotBoolError : public Error
+    {
+    public:
+        explicit ConditionNotBoolError(AST::ValueType type);
+    };
+    
+
 } // namespace SED::Analyzable
 
 #endif // !SED_ERROR_DUMP_HPP

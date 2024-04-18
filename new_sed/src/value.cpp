@@ -1831,10 +1831,15 @@ namespace SED::AST
 
     void Unary::toIR()
     {
-        size_t unary_id = getRegister();
         expr->toIR();
+        size_t expr_id = getRegister();
         nextRegister();
-        irs.push_back((new IR::AssignUnary())->setRegisterSource(getRegister())->setOp(OperatorEnumMapToString(op))->setRegisterDestination(unary_id));
+        size_t unary_id = getRegister();
+        irs.push_back(
+            (new IR::AssignUnary())
+                ->setRegisterDestination(unary_id)
+                ->setRegisterSource(expr_id)
+                ->setOp(OperatorEnumMapToString(op)));
     }
 
     

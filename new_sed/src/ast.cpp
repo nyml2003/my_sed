@@ -40,9 +40,10 @@ namespace SED::AST
         {NodeClass::COMPILATION_UNIT, "CompilationUnit"},
         {NodeClass::BLOCK, "Block"},
 
-        };
+    };
 
-    std::string NodeClassEnumMapToString(NodeClass nodeClass){
+    std::string NodeClassEnumMapToString(NodeClass nodeClass)
+    {
         return NodeClassEnumMap[nodeClass];
     }
 
@@ -74,11 +75,11 @@ namespace SED::AST
         value->toMermaid();
     }
 
-    void VariableDeclaration::toIR(){
+    void VariableDeclaration::toIR()
+    {
         irs.push_back((new IR::Var())->setName(variable->getName()));
-            value->toIR();
-            irs.push_back((new IR::Assign())->setLeftValue(variable->getName())->setRightValue(getRegister()));
-        
+        value->toIR();
+        irs.push_back((new IR::Assign())->setLeftValue(variable->getName())->setRightValue(getRegister()));
     }
 
     VariableDeclaration *VariableDeclaration::setVariable(Variable *_variable)
@@ -125,20 +126,25 @@ namespace SED::AST
         return isConst;
     }
 
-    void VariableDeclaration::analyze(){
-        if (analyzerContext.exists(variable) == true){
+    void VariableDeclaration::analyze()
+    {
+        if (analyzerContext.exists(variable) == true)
+        {
             Error::VariableRedeclarationError(variable->getName()).error();
             return;
         }
-        if (value != nullptr){
-            if (value->getValueType() != type){
+        if (value != nullptr)
+        {
+            if (value->getValueType() != type)
+            {
                 Error::TypeMismatchError(type, value->getValueType()).error();
                 return;
             }
-            if (value->isDirect()){
+            if (value->isDirect())
+            {
                 value = value->directify();
-                analyzerContext.add(variable, value->directify());
             }
+            analyzerContext.add(variable, value->directify());
         }
         return;
     }
@@ -171,12 +177,11 @@ namespace SED::AST
         value->toMermaid();
     }
 
-    void Assignment::toIR(){
+    void Assignment::toIR()
+    {
 
-            value->toIR();
-            irs.push_back((new IR::Assign())->setLeftValue(variable->getName())->setRightValue(getRegister()));
-        
-        
+        value->toIR();
+        irs.push_back((new IR::Assign())->setLeftValue(variable->getName())->setRightValue(getRegister()));
     }
 
     Variable *Assignment::getVariable() const
@@ -189,16 +194,20 @@ namespace SED::AST
         return value;
     }
 
-    void Assignment::analyze(){
-        if (analyzerContext.exists(variable) == false){
+    void Assignment::analyze()
+    {
+        if (analyzerContext.exists(variable) == false)
+        {
             Error::UndeclaredVariableError(variable->getName()).error();
             return;
         }
-        if (analyzerContext.get(variable)->getValueType() != value->getValueType()){
+        if (analyzerContext.get(variable)->getValueType() != value->getValueType())
+        {
             Error::TypeMismatchError(analyzerContext.get(variable)->getValueType(), value->getValueType()).error();
             return;
         }
-        if (value->isDirect()){
+        if (value->isDirect())
+        {
             value = value->directify();
             analyzerContext.set(variable, value->directify());
         }
@@ -213,11 +222,13 @@ namespace SED::AST
         putLabel(NodeClass::BREAK_STATEMENT);
     }
 
-    void BreakStatement::toIR(){
+    void BreakStatement::toIR()
+    {
         ;
     }
 
-    void BreakStatement::analyze(){
+    void BreakStatement::analyze()
+    {
         ;
     }
 
@@ -237,7 +248,8 @@ namespace SED::AST
         putLabel(returnType);
     }
 
-    void FunctionDeclaration::toIR(){
+    void FunctionDeclaration::toIR()
+    {
         ;
     }
 
@@ -263,7 +275,8 @@ namespace SED::AST
         return returnType;
     }
 
-    void FunctionDeclaration::analyze(){
+    void FunctionDeclaration::analyze()
+    {
         if (analyzerContext.exists(name))
         {
             Error::FunctionRedeclarationError(name).error();
@@ -295,12 +308,15 @@ namespace SED::AST
         value->toMermaid();
     }
 
-    void ExpressionStatement::toIR(){
+    void ExpressionStatement::toIR()
+    {
         value->toIR();
     }
 
-    void ExpressionStatement::analyze(){
-        if (value->isDirect()){
+    void ExpressionStatement::analyze()
+    {
+        if (value->isDirect())
+        {
             value = value->directify();
         }
     }
@@ -323,7 +339,7 @@ namespace SED::AST
         mermaidFooter();
     }
 
-    CompilationUnit * CompilationUnit::setNodes(const std::vector<Node *> &_nodes)
+    CompilationUnit *CompilationUnit::setNodes(const std::vector<Node *> &_nodes)
     {
         nodes = std::move(_nodes);
         return this;
@@ -334,7 +350,8 @@ namespace SED::AST
         return nodes;
     }
 
-    void CompilationUnit::toIR(){
+    void CompilationUnit::toIR()
+    {
         for (auto &node : nodes)
         {
             node->toIR();
@@ -345,7 +362,8 @@ namespace SED::AST
         }
     }
 
-    void CompilationUnit::analyze(){
+    void CompilationUnit::analyze()
+    {
         for (auto &node : nodes)
         {
             node->analyze();
@@ -368,7 +386,8 @@ namespace SED::AST
         }
     }
 
-    void Block::analyze(){
+    void Block::analyze()
+    {
         analyzerContext.enter();
         for (auto &node : nodes)
         {
@@ -377,7 +396,8 @@ namespace SED::AST
         analyzerContext.exit();
     }
 
-    void Block::toIR(){
+    void Block::toIR()
+    {
         for (auto &node : nodes)
         {
             node->toIR();
@@ -411,7 +431,8 @@ namespace SED::AST
         block->toMermaid();
     }
 
-    void FunctionDefinition::analyze(){
+    void FunctionDefinition::analyze()
+    {
         if (analyzerContext.exists(declaration->getName()))
         {
             Error::FunctionRedeclarationError(declaration->getName()).error();
@@ -420,7 +441,8 @@ namespace SED::AST
         block->analyze();
     }
 
-    void FunctionDefinition::toIR(){
+    void FunctionDefinition::toIR()
+    {
         irs.push_back((new IR::Label())->setName(declaration->getName()));
         irs.push_back((new IR::Start()));
         block->toIR();
@@ -459,8 +481,14 @@ namespace SED::AST
         return value;
     }
 
-    void ReturnStatement::analyze(){
-        if (value->isDirect()){
+    void ReturnStatement::analyze()
+    {
+        if (value == nullptr)
+        {
+            return;
+        }
+        if (value->isDirect())
+        {
             value = value->directify();
         }
     }
@@ -469,16 +497,184 @@ namespace SED::AST
     {
         size_t id = getCounter();
         putLabel(NodeClass::RETURN_STATEMENT);
+        if (value == nullptr)
+        {
+            return;
+        }
         count();
         putEdge(id, getCounter(), "值");
         value->toMermaid();
     }
 
-    void ReturnStatement::toIR(){
-    
+    void ReturnStatement::toIR()
+    {
+        if (value == nullptr)
+        {
+            irs.push_back((new IR::Return()));
+            return;
+        }else{
             value->toIR();
             irs.push_back((new IR::Return())->setVar(registerWrapper(getRegister())));
-        
+        }
         
     }
+
+    /*WHILE*/
+
+    WhileStatement::WhileStatement() : Node(NodeClass::WHILE_STATEMENT) {}
+
+    WhileStatement *WhileStatement::setCondition(RightValue *_condition)
+    {
+        condition = _condition;
+        return this;
+    }
+
+    WhileStatement *WhileStatement::setBody(Node *_body)
+    {
+        body = _body;
+        return this;
+    }
+
+    void WhileStatement::toMermaid()
+    {
+        size_t id = getCounter();
+        putLabel(NodeClass::WHILE_STATEMENT);
+        count();
+        putEdge(id, getCounter(), "条件");
+        condition->toMermaid();
+        count();
+        putEdge(id, getCounter(), "循环体");
+        body->toMermaid();
+    }
+
+    void WhileStatement::toIR()
+    {
+        irs.push_back((new IR::Label())->setName(labelWrapper(getLabel())));
+        condition->toIR();
+        nextLabel();
+        irs.push_back((new IR::Ifz())->setRegisterSource(getRegister())->setLabel(getLabel()));
+        body->toIR();
+        irs.push_back((new IR::Goto())->setLabel(labelWrapper(getLabel() - 1)));
+        irs.push_back((new IR::Label())->setName(labelWrapper(getLabel())));
+    }
+
+    void WhileStatement::analyze()
+    {
+        if (condition->getValueType() != ValueType::BOOLEAN)
+        {
+            Error::ConditionNotBoolError(condition->getValueType()).error();
+            return;
+        }
+        body->analyze();
+    }
+
+    /*If*/
+
+    IfStatement::IfStatement() : Node(NodeClass::IF_STATEMENT) {}
+
+    IfStatement *IfStatement::setCondition(RightValue *_condition)
+    {
+        condition = _condition;
+        return this;
+    }
+
+    IfStatement *IfStatement::setThenBody(Node *_thenBody)
+    {
+        thenBody = _thenBody;
+        return this;
+    }
+
+    IfStatement *IfStatement::setElseBody(Node *_elseBody)
+    {
+        elseBody = _elseBody;
+        return this;
+    }
+
+    RightValue *IfStatement::getCondition() const
+    {
+        return condition;
+    }
+
+    Node *IfStatement::getThenBody() const
+    {
+        return thenBody;
+    }
+
+    Node *IfStatement::getElseBody() const
+    {
+        return elseBody;
+    }
+
+    void IfStatement::toMermaid()
+    {
+        size_t id = getCounter();
+        putLabel(NodeClass::IF_STATEMENT);
+        count();
+        putEdge(id, getCounter(), "条件");
+        condition->toMermaid();
+        count();
+        putEdge(id, getCounter(), "then");
+        thenBody->toMermaid();
+        if (elseBody != nullptr)
+        {
+            count();
+            putEdge(id, getCounter(), "else");
+            elseBody->toMermaid();
+        }
+    }
+
+    void IfStatement::toIR()
+    {
+        condition->toIR();
+        nextLabel();
+        irs.push_back((new IR::Ifz())->setRegisterSource(getRegister())->setLabel(getLabel()));
+        thenBody->toIR();
+        if (elseBody != nullptr)
+        {
+            nextLabel();
+            irs.push_back((new IR::Goto())->setLabel(labelWrapper(getLabel())));
+            irs.push_back((new IR::Label())->setName(labelWrapper(getLabel() - 1)));
+            elseBody->toIR();
+        }
+        irs.push_back((new IR::Label())->setName(labelWrapper(getLabel())));
+    }
+
+    void IfStatement::analyze()
+    {
+        if (condition->getValueType() != ValueType::BOOLEAN)
+        {
+            Error::ConditionNotBoolError(condition->getValueType()).error();
+            return;
+        }
+        thenBody->analyze();
+        if (elseBody != nullptr)
+        {
+            elseBody->analyze();
+        }
+    }
+
+    /*Continue*/
+
+    ContinueStatement::ContinueStatement() : Node(NodeClass::CONTINUE_STATEMENT) {}
+
+    void ContinueStatement::toMermaid()
+    {
+        putLabel(NodeClass::CONTINUE_STATEMENT);
+    }
+
+    void ContinueStatement::toIR()
+    {
+        ;
+    }
+
+    void ContinueStatement::analyze()
+    {
+        ;
+    }
+
+
+
+
+
+
 }

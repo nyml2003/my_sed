@@ -51,9 +51,12 @@
 %token TYPE_INT TYPE_VOID TYPE_FLOAT TYPE_BOOL
 %token<std::int32_t> INT_CONST
 %token<float> FLOAT_CONST
-%token LPAREN RPAREN SEMICOLON COMMA PRINT LBRACE RBRACE IF ELSE WHILE LBRACKET RBRACKET CONTINUE
-%token PLUS MINUS STAR SLASH PERCENT AND OR EQ NE LT GT LE GE NOT TRUE FALSE BREAK LIST
+%token LPAREN  SEMICOLON COMMA LBRACE RBRACE IF WHILE CONTINUE
+%token PLUS MINUS STAR SLASH PERCENT AND OR EQ NE LT GT LE GE NOT TRUE FALSE BREAK
 %right ASSIGN
+
+%nonassoc RPAREN
+%nonassoc ELSE
 %%
 %start CompUnit;
 
@@ -71,6 +74,7 @@ CompUnitContainer:
        {/* empty */ $$ = std::vector< SED::AST::Node* >();}
     | CompUnitContainer DeclList { $$ = $1; $$.insert($$.end(),$2.begin(),$2.end()); }
     | CompUnitContainer FuncDef { $$ = $1; $$.push_back($2); }
+    | CompUnitContainer FuncDecl { $$ = $1; $$.push_back($2); }
     ;
 
 
@@ -177,10 +181,26 @@ Stmt:
     | Block { $$ = $1; }
     | Exp SEMICOLON { $$ = $1; }
     | SEMICOLON {}
+    | WHILE LPAREN Exp RPAREN Stmt {
+        $$ = (new SED::AST::WhileStatement())->setCondition($3)->setBody($5);
+    }
+    | IF LPAREN Exp RPAREN Stmt ELSE Stmt { 
+        $$ = (new SED::AST::IfStatement())->setCondition($3)->setThenBody($5)->setElseBody($7);
+    }
+    | IF LPAREN Exp RPAREN Stmt {
+        $$ = (new SED::AST::IfStatement())->setCondition($3)->setThenBody($5);
+    }
+    
+    | CONTINUE SEMICOLON {
+        $$ = (new SED::AST::ContinueStatement());
+    }
+    | BREAK SEMICOLON {
+        $$ = (new SED::AST::BreakStatement());
+    }
     ;
 
 FuncDecl:
-    Type IDENT LPAREN RPAREN {
+    Type IDENT LPAREN RPAREN SEMICOLON {
         $$ = (new SED::AST::FunctionDeclaration())->setReturnType($1)->setName($2);
     }
     ;

@@ -61,4 +61,6 @@ namespace SED::Error
     FunctionRedeclarationError::FunctionRedeclarationError(std::string function) : Error(Type::ERROR, Code::SEMANTIC_ERROR, "Function Redeclaration: " + function) {}
 
     DivisionByZeroError::DivisionByZeroError() : Error(Type::ERROR, Code::RUNTIME_ERROR, "Division by Zero") {}
+
+    ConditionNotBoolError::ConditionNotBoolError(AST::ValueType type) : Error(Type::ERROR, Code::RUNTIME_ERROR, "Condition Not Bool: " + AST::ValueTypeEnumMapToString(type)) {}
 }

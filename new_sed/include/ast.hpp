@@ -35,7 +35,10 @@ namespace SED::AST
         EXPRESSION_STATEMENT,
         COMPILATION_UNIT,
         BLOCK,
-        RETURN_STATEMENT
+        RETURN_STATEMENT,
+        WHILE_STATEMENT,
+        IF_STATEMENT,
+        CONTINUE_STATEMENT,
     };
     extern std::map<NodeClass, std::string> NodeClassEnumMap;
     extern std::string NodeClassEnumMapToString(NodeClass nodeClass);
@@ -193,6 +196,51 @@ namespace SED::AST
         explicit ReturnStatement();
         ReturnStatement *setValue(RightValue *_value);
         RightValue *getValue() const;
+        void toMermaid() override;
+        void toIR() override;
+        void analyze() override;
+    };
+
+    class WhileStatement : public Node
+    {
+        RightValue *condition;
+        Node *body;
+
+    public:
+
+        explicit WhileStatement();
+        WhileStatement *setCondition(RightValue *_condition);
+        WhileStatement *setBody(Node *_body);
+        RightValue *getCondition() const;
+        Node *getBody() const;
+        void toMermaid() override;
+        void toIR() override;
+        void analyze() override;
+    };
+
+    class IfStatement : public Node
+    {
+        RightValue *condition;
+        Node* thenBody;
+        Node *elseBody;
+
+    public:
+        explicit IfStatement();
+        IfStatement *setCondition(RightValue *_condition);
+        IfStatement *setThenBody(Node *_thenBody);
+        IfStatement *setElseBody(Node *_elseBody);
+        RightValue *getCondition() const;
+        Node *getThenBody() const;
+        Node *getElseBody() const;
+        void toMermaid() override;
+        void toIR() override;
+        void analyze() override;
+    };
+
+    class ContinueStatement : public Node
+    {
+    public:
+        explicit ContinueStatement();
         void toMermaid() override;
         void toIR() override;
         void analyze() override;

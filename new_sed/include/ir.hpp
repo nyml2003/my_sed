@@ -90,6 +90,27 @@ namespace SED::IR{
         void output() override;
     };
 
+    class Goto : public Statement{
+        std::string label;
+    public:
+        Goto* setLabel(const std::string& _label);
+        std::string getLabel() const;
+        void output() override;
+    };
+
+    class Ifz : public Statement{
+        size_t registerSource;
+        size_t label;
+
+    public:
+        Ifz* setRegisterSource(size_t _registerSource);
+        Ifz* setLabel(size_t _label);
+        size_t getRegisterSource() const;
+        size_t getLabel() const;
+        void output() override;
+    };
+
+
 
 };
 inline std::vector<SED::IR::Statement *> irs;

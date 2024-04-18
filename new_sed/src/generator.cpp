@@ -127,6 +127,8 @@ namespace SED::Generator {
 
     size_t IRGenerator::registerCounter = 0;
 
+    size_t IRGenerator::labelCounter = 0;
+
     size_t IRGenerator::getRegister() {
         return registerCounter;
     }
@@ -137,5 +139,17 @@ namespace SED::Generator {
 
     std::string IRGenerator::registerWrapper(size_t register_id) {
         return "%" + std::to_string(register_id);
+    }
+
+    size_t IRGenerator::getLabel() {
+        return labelCounter;
+    }
+
+    void IRGenerator::nextLabel() {
+        labelCounter++;
+    }
+
+    std::string IRGenerator::labelWrapper(size_t label_id) {
+        return "L" + std::to_string(label_id);
     }
 }
