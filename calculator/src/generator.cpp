@@ -39,6 +39,7 @@ namespace SED::Generator {
             {AST::NodeClass::VARIABLE_DECLARATION, "VARIABLE_DECLARATION"},
             {AST::NodeClass::BREAK_STATEMENT, "break"},
             {AST::NodeClass::VOID, "void"},
+            {AST::NodeClass::CHAR, "char"},
     };
 
     std::map<AST::ValueType, std::string> ValueTypeToMermaid::ValueTypeNames = {
@@ -47,6 +48,7 @@ namespace SED::Generator {
             {AST::ValueType::BOOLEAN, "bool"},
             {AST::ValueType::POINTER, "pointer"},
             {AST::ValueType::VOID, "void"},
+            {AST::ValueType::CHAR, "char"},
     };
 
 

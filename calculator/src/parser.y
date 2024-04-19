@@ -46,6 +46,7 @@
 %token TYPE_INT TYPE_VOID TYPE_FLOAT TYPE_BOOL
 %token<std::int32_t> INT_CONST
 %token<float> FLOAT_CONST
+%token<std::string> CHAR_CONST
 %token LPAREN RPAREN SEMICOLON COMMA PRINT LBRACE RBRACE
 %token PLUS MINUS STAR SLASH PERCENT AND OR EQ NE LT GT LE GE NOT TRUE FALSE BREAK LIST
 %right ASSIGN
@@ -180,6 +181,7 @@ PrimaryExp:
     | IDENT LPAREN RPAREN { 
         $$ = (new SED::AST::FunctionCall())->setName($1);
     }
+    | CHAR_CONST { $$ = (new SED::AST::Char())->setValue($1[1]); }
     ;
 
 UNARYOP:

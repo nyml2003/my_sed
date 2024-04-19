@@ -24,6 +24,7 @@ namespace SED {
             void set(AST::Variable *variable, AST::DirectRightValue *value);
             void enter();
             void exit();
+            bool isGloabl();
         };
     }
 }

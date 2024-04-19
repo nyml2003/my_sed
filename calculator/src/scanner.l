@@ -8,6 +8,7 @@
 %{
     yy::parser::symbol_type make_NUMBER_INT(const std::string&s,const yy::parser::location_type& loc, int base);
     yy::parser::symbol_type make_NUMBER_FLOAT(const std::string&s,const yy::parser::location_type& loc);
+    yy::parser::symbol_type make_CHAR_CONST(const std::string&s,const yy::parser::location_type& loc);
 %}
 
 %{
@@ -26,6 +27,7 @@
 "-" {return yy::parser::make_MINUS(loc);}
 "*" {return yy::parser::make_STAR(loc);}
 "/" {return yy::parser::make_SLASH(loc);}
+"'"[a-zA-Z0-9_]+"'" {return yy::parser::make_CHAR_CONST(yytext, loc);}
 "%" {return yy::parser::make_PERCENT(loc);}
 "==" {return yy::parser::make_EQ(loc);}
 "!=" {return yy::parser::make_NE(loc);}
@@ -93,4 +95,8 @@ yy::parser::symbol_type make_NUMBER_FLOAT(const std::string&s,const yy::parser::
         throw yy::parser::syntax_error(loc, "float overflow: " + s);
     }
     return yy::parser::make_FLOAT_CONST(value, loc);
+}
+
+yy::parser::symbol_type make_CHAR_CONST(const std::string&s,const yy::parser::location_type& loc) {
+    return yy::parser::make_CHAR_CONST(std::string(s.begin()+1, s.end()-1), loc);
 }

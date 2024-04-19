@@ -30,7 +30,8 @@ namespace SED::AST
         BREAK_STATEMENT,
         FUNCTION_CALL,
         FUNCTION_DECLARATION,
-        EXPRESSION_STATEMENT
+        EXPRESSION_STATEMENT,
+        CHAR
     };
     extern std::map<NodeClass, std::string> NodeClassEnumMap;
     extern std::string NodeClassEnumMapToString(NodeClass nodeClass);

@@ -39,7 +39,8 @@ namespace SED::AST
         FLOAT_32,
         BOOLEAN,
         POINTER,
-        VOID
+        VOID,
+        CHAR
     };
 
     extern std::map<ValueType, std::string> ValueTypeEnumMap;
@@ -120,6 +121,7 @@ namespace SED::AST
         virtual DirectRightValue *asFloat32() = 0;
         virtual DirectRightValue *asBoolean() = 0;
         virtual DirectRightValue *asPointer() = 0;
+        virtual DirectRightValue *asChar() = 0;
 
         virtual bool isSameValueType(RightValue *other);
 
@@ -217,6 +219,8 @@ namespace SED::AST
 
         DirectRightValue *asPointer() override;
 
+        DirectRightValue *asChar() override;
+
         virtual bool isFloat32();
 
         virtual bool isBoolean();
@@ -224,6 +228,8 @@ namespace SED::AST
         virtual bool isPointer();
 
         virtual bool isVoid();
+
+        virtual bool isChar();
     };
 
     class Int32 : public DirectRightValue
@@ -572,6 +578,8 @@ namespace SED::AST
 
         DirectRightValue *asPointer() override;
 
+        DirectRightValue *asChar() override;
+
         bool isDirect() override = 0;
 
         DirectRightValue *directify() override = 0;
@@ -690,6 +698,65 @@ namespace SED::AST
     };
 
     DirectRightValue *createValue(ValueType type);
+
+    class Char: public DirectRightValue
+    {
+        std::optional<char> value{};
+    public:
+        explicit Char();
+
+        void toMermaid() override;
+
+        void interpret() override;
+
+        ValueType getValueType() override;
+
+        [[nodiscard]] char getValue() const;
+
+        Char *setValue(char _value);
+
+        DirectRightValue *_add_(RightValue *other) override;
+
+        ValueType _add_type_(ValueType other) override;
+
+        DirectRightValue *_sub_(RightValue *other) override;
+
+        ValueType _sub_type_(ValueType other) override;
+
+        DirectRightValue *_eq_(RightValue *other) override;
+
+        ValueType _eq_type_(ValueType other) override;
+
+        DirectRightValue *_ne_(RightValue *other) override;
+
+        ValueType _ne_type_(ValueType other) override;
+
+        DirectRightValue *_lt_(RightValue *other) override;
+
+        ValueType _lt_type_(ValueType other) override;
+
+        DirectRightValue *_le_(RightValue *other) override;
+
+        ValueType _le_type_(ValueType other) override;
+
+        DirectRightValue *_gt_(RightValue *other) override;
+
+        ValueType _gt_type_(ValueType other) override;
+
+        DirectRightValue *_ge_(RightValue *other) override;
+
+        ValueType _ge_type_(ValueType other) override;
+
+        DirectRightValue *asInt32() override;
+
+        DirectRightValue *asFloat32() override;
+
+        DirectRightValue *asBoolean() override;
+
+
+        bool isChar() override;
+
+    };
 }
 
 #endif // SED_VALUE_HPP

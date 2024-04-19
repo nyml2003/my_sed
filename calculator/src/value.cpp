@@ -17,7 +17,9 @@ namespace SED::AST
         {ValueType::FLOAT_32, "Float32"},
         {ValueType::BOOLEAN, "Boolean"},
         {ValueType::POINTER, "Pointer"},
-        {ValueType::VOID, "Void"}};
+        {ValueType::VOID, "Void"},
+        {ValueType::CHAR, "Char"}};
+    
 
     std::string OperatorEnumMapToString(Operator op)
     {
@@ -302,6 +304,11 @@ namespace SED::AST
         throw std::runtime_error("Invalid cast to pointer");
     }
 
+    DirectRightValue *DirectRightValue::asChar()
+    {
+        throw std::runtime_error("Invalid cast to char");
+    }
+
     /*Int32*/
 
     Int32::Int32() : DirectRightValue(NodeClass::INT_32) {}
@@ -402,6 +409,9 @@ namespace SED::AST
             if (otherDirect->isInt32())
             {
                 return (new Int32())->setValue(value.value() + ((Int32 *)otherDirect)->getValue());
+            }else if (otherDirect->isChar()){
+                return (new Char())->setValue(value.value() + ((Char *)otherDirect)->getValue());
+            
             }
         }
         return DirectRightValue::_add_(other);
@@ -412,6 +422,8 @@ namespace SED::AST
         if (other == ValueType::INT_32)
         {
             return ValueType::INT_32;
+        }else if (other == ValueType::CHAR){
+            return ValueType::CHAR;
         }
         return DirectRightValue::_add_type_(other);
     }
@@ -1598,6 +1610,11 @@ namespace SED::AST
         return this->directify()->asPointer();
     }
 
+    DirectRightValue* IndirectRightValue::asChar()
+    {
+        return this->directify()->asChar();
+    }
+
     /*Binary*/
 
     Binary *Binary::setLeft(RightValue *_left)
@@ -2013,6 +2030,287 @@ namespace SED::AST
             return new Boolean();
         default:
             throw std::runtime_error("Invalid value type");
+        }
+    }
+
+    /*Char*/
+
+    Char::Char() : DirectRightValue(NodeClass::CHAR) {}
+
+    Char *Char::setValue(char _value)
+    {
+        value = _value;
+        return this;
+    }
+
+    ValueType Char::getValueType()
+    {
+        return ValueType::CHAR;
+    }
+
+    char Char::getValue() const
+    {
+        if (value.has_value())
+        {
+            return value.value();
+        }else{
+            return 0;
+        }
+    }
+
+    bool DirectRightValue::isChar()
+    {
+        return false;
+    }
+
+    bool Char::isChar()
+    {
+        return true;
+    }
+    
+    DirectRightValue* Char::_add_(RightValue *other)
+    {
+        if (other->isDirect())
+        {
+            auto otherDirect = other->directify();
+            if (otherDirect->isInt32())
+            {
+                return (new Char())->setValue(value.value() + ((Int32 *)otherDirect)->getValue());
+            }
+        }
+        return DirectRightValue::_add_(other);
+    }
+
+    ValueType Char::_add_type_(ValueType other)
+    {
+        if (other == ValueType::INT_32)
+        {
+            return ValueType::CHAR;
+        }
+        return DirectRightValue::_add_type_(other);
+    }
+
+    DirectRightValue* Char::_sub_(RightValue *other)
+    {
+        if (other->isDirect())
+        {
+            auto otherDirect = other->directify();
+            if (otherDirect->isInt32())
+            {
+                return (new Char())->setValue(value.value() - ((Int32 *)otherDirect)->getValue());
+            }else if (otherDirect->isChar())
+            {
+                return (new Int32())->setValue(value.value() - ((Char *)otherDirect)->getValue());
+            }
+        }
+        return DirectRightValue::_sub_(other);
+    }
+
+    ValueType Char::_sub_type_(ValueType other)
+    {
+        if (other == ValueType::INT_32)
+        {
+            return ValueType::CHAR;
+        }else if (other == ValueType::CHAR)
+        {
+            return ValueType::INT_32;
+        }
+        return DirectRightValue::_sub_type_(other);
+    }
+
+    DirectRightValue* Char::_eq_(RightValue *other)
+    {
+        if (other->isDirect())
+        {
+            auto otherDirect = other->directify();
+            if (otherDirect->isChar())
+            {
+                return (new Boolean())->setValue(value == ((Char *)otherDirect)->getValue());
+            }
+        }
+        return DirectRightValue::_eq_(other);
+    }
+
+    ValueType Char::_eq_type_(ValueType other)
+    {
+        if (other == ValueType::CHAR)
+        {
+            return ValueType::BOOLEAN;
+        }
+        return DirectRightValue::_eq_type_(other);
+    }
+
+    DirectRightValue* Char::_ne_(RightValue *other)
+    {
+        if (other->isDirect())
+        {
+            auto otherDirect = other->directify();
+            if (otherDirect->isChar())
+            {
+                return (new Boolean())->setValue(value != ((Char *)otherDirect)->getValue());
+            }
+        }
+        return DirectRightValue::_ne_(other);
+    }
+
+    ValueType Char::_ne_type_(ValueType other)
+    {
+        if (other == ValueType::CHAR)
+        {
+            return ValueType::BOOLEAN;
+        }
+        return DirectRightValue::_ne_type_(other);
+    }
+
+    DirectRightValue* Char::_lt_(RightValue *other)
+    {
+        if (other->isDirect())
+        {
+            auto otherDirect = other->directify();
+            if (otherDirect->isChar())
+            {
+                return (new Boolean())->setValue(value < ((Char *)otherDirect)->getValue());
+            }
+        }
+        return DirectRightValue::_lt_(other);
+    }
+
+    ValueType Char::_lt_type_(ValueType other)
+    {
+        if (other == ValueType::CHAR)
+        {
+            return ValueType::BOOLEAN;
+        }
+        return DirectRightValue::_lt_type_(other);
+    }
+
+    DirectRightValue* Char::_le_(RightValue *other)
+    {
+        if (other->isDirect())
+        {
+            auto otherDirect = other->directify();
+            if (otherDirect->isChar())
+            {
+                return (new Boolean())->setValue(value <= ((Char *)otherDirect)->getValue());
+            }
+        }
+        return DirectRightValue::_le_(other);
+    }
+
+    ValueType Char::_le_type_(ValueType other)
+    {
+        if (other == ValueType::CHAR)
+        {
+            return ValueType::BOOLEAN;
+        }
+        return DirectRightValue::_le_type_(other);
+    }
+
+    DirectRightValue* Char::_gt_(RightValue *other)
+    {
+        if (other->isDirect())
+        {
+            auto otherDirect = other->directify();
+            if (otherDirect->isChar())
+            {
+                return (new Boolean())->setValue(value > ((Char *)otherDirect)->getValue());
+            }
+        }
+        return DirectRightValue::_gt_(other);
+    }
+
+    ValueType Char::_gt_type_(ValueType other)
+    {
+        if (other == ValueType::CHAR)
+        {
+            return ValueType::BOOLEAN;
+        }
+        return DirectRightValue::_gt_type_(other);
+    }
+
+    DirectRightValue* Char::_ge_(RightValue *other)
+    {
+        if (other->isDirect())
+        {
+            auto otherDirect = other->directify();
+            if (otherDirect->isChar())
+            {
+                return (new Boolean())->setValue(value >= ((Char *)otherDirect)->getValue());
+            }
+        }
+        return DirectRightValue::_ge_(other);
+    }
+
+
+    ValueType Char::_ge_type_(ValueType other)
+    {
+        if (other == ValueType::CHAR)
+        {
+            return ValueType::BOOLEAN;
+        }
+        return DirectRightValue::_ge_type_(other);
+    }
+
+
+    DirectRightValue* Char::asInt32()
+    {
+        if (value.has_value())
+        {
+            return (new Int32())->setValue(value.value());
+        }
+        else{
+            return new Int32();
+        }
+    }
+
+    DirectRightValue* Char::asFloat32()
+    {
+        if (value.has_value())
+        {
+            return (new Float32())->setValue(value.value());
+        }
+        else{
+            return new Float32();
+        }
+    }
+
+    DirectRightValue* Char::asBoolean()
+    {
+        if (value.has_value())
+        {
+            return (new Boolean())->setValue(value.value());
+        }
+        else{
+            return new Boolean();
+        }
+    }
+    void Char::toMermaid()
+    {
+        size_t char_id = getCounter();
+        putLabel(getNodeClass());
+        count();
+        size_t value_id = getCounter();
+        if (value.has_value())
+        {
+            putLabel(std::to_string(value.value()));
+        }
+        else
+        {
+            putLabel("null");
+        }
+        putEdge(char_id, value_id, "value");
+        count();
+    }
+
+    void Char::interpret()
+    {
+        if (value.has_value())
+        {
+            std::cout << value.value() << std::endl;
+        }
+        else
+        {
+            std::cout << "null" << std::endl;
         }
     }
 }

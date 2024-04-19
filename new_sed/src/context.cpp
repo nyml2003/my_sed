@@ -108,4 +108,9 @@ namespace SED::Context
     {
         variables.pop_back();
     }
+
+    bool AnalyzerContext::isGloabl()
+    {
+        return variables.size() == 1;
+    }
 }
