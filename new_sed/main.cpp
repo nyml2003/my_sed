@@ -13,11 +13,11 @@ int main(int argc, char *argv[])
     driver.setTraceParsing(false);
     driver.setTraceScanning(false);
     driver.parse();
-    //driver.result->analyze();
+    // driver.result->analyze();
     driver.result->toMermaid();
     driver.setOutputFileName(ir);
     driver.result->toIR();
-    
+
     //     driver.setOutputFileName(ir);
     //     driver.result->toLLVM();
     return 0;

@@ -38,7 +38,7 @@
 %type<SED::AST::Variable*> Var
 %type < std::vector< SED::AST::VariableDeclaration* > > DeclList
 %type < std::vector< SED::AST::Assignment* > > DefList
-%type < SED::AST::RightValue* > UnaryExp MulExp AddExp RelExp EqExp LAndExp LOrExp PrimaryExp Exp Val 
+%type < SED::AST::Value* > UnaryExp MulExp AddExp RelExp EqExp LAndExp LOrExp PrimaryExp Exp Val 
 %type < SED::AST::Operator > UNARYOP
 %type < SED::AST::ValueType > Type
 %type < SED::AST::FunctionDefinition* > FuncDef

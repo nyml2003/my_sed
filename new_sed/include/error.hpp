@@ -1,95 +1,99 @@
+
 #ifndef SED_ERROR_DUMP_HPP
 #define SED_ERROR_DUMP_HPP
+#include <map>
 #include <string>
 #include <vector>
-#include <map>
-#include "ast.hpp"
-// 1.报错信息 info warning error
-// 2.报错信息的输出
-// 3.错误码
+namespace SED::AST
+{
+class Constant;
+class Variable;
+enum class ValueType;
+enum class Operator;
+} // namespace SED::AST
+
 namespace SED::Error
 {
-    class Error
+class Error
+{
+  protected:
+    enum class Type
     {
-    protected:
-        enum class Type
-        {
-            ERROR,
-            WARNING,
-            INFO,
-            DEBUG
-        } type;
-        enum class Code
-        {
-            SYNTAX_ERROR,
-            SEMANTIC_ERROR,
-            RUNTIME_ERROR
-        } code;
-        explicit Error(Type type, Code code, std::string message);
-        std::string message;
-        static std::map<Code, std::string> CodeEnumMap;
-        static std::map<Type, std::string> TypeEnumMap;
-        static std::string CodeEnumMapToString(Code code);
-        static std::string TypeEnumMapToString(Type type);
-
-    public:
-        void info();
-        void warning();
-        void error();
-        void debug();
-    };
-
-    class TypeMismatchError : public Error
+        ERROR,
+        WARNING,
+        INFO,
+        DEBUG
+    } type;
+    enum class Code
     {
-    public:
-        explicit TypeMismatchError(AST::ValueType type1, AST::ValueType type2);
-    };
+        SYNTAX_ERROR,
+        SEMANTIC_ERROR,
+        RUNTIME_ERROR
+    } code;
+    explicit Error(Type type, Code code, std::string message);
+    std::string message;
+    static std::map<Code, std::string> CodeEnumMap;
+    static std::map<Type, std::string> TypeEnumMap;
+    static std::string CodeEnumMapToString(Code code);
+    static std::string TypeEnumMapToString(Type type);
 
-    class UndeclaredVariableError : public Error
-    {
-    public:
-        explicit UndeclaredVariableError(std::string variable);
-    };
+  public:
+    void info();
+    void warning();
+    void error();
+    void debug();
+};
 
-    class UndeclaredFunctionError : public Error
-    {
-    public:
-        explicit UndeclaredFunctionError(std::string function);
-    };
+class TypeMismatchError : public Error
+{
+  public:
+    explicit TypeMismatchError(AST::ValueType type1, AST::ValueType type2);
+};
 
-    class InvalidOperationError : public Error
-    {
-    public:
-        explicit InvalidOperationError(AST::ValueType type1, AST::Operator op, AST::ValueType type2);
-        explicit InvalidOperationError(AST::ValueType type1, AST::Operator op);
-    };
+class UndeclaredVariableError : public Error
+{
+  public:
+    explicit UndeclaredVariableError(std::string variable);
+};
 
-    class VariableRedeclarationError : public Error
-    {
-    public:
-        explicit VariableRedeclarationError(std::string variable);
-    };
+class UndeclaredFunctionError : public Error
+{
+  public:
+    explicit UndeclaredFunctionError(std::string function);
+};
 
-    class FunctionRedeclarationError : public Error
-    {
-    public:
-        explicit FunctionRedeclarationError(std::string function);
-    };
+class InvalidOperationError : public Error
+{
+  public:
+    explicit InvalidOperationError(AST::ValueType type1, AST::Operator op, AST::ValueType type2);
+    explicit InvalidOperationError(AST::ValueType type1, AST::Operator op);
+};
 
-    class DivisionByZeroError : public Error
-    {
-    public:
-        explicit DivisionByZeroError();
-    };
+class VariableRedeclarationError : public Error
+{
+  public:
+    explicit VariableRedeclarationError(std::string variable);
+};
 
-    // 条件语句中的条件表达式不是bool类型
-    class ConditionNotBoolError : public Error
-    {
-    public:
-        explicit ConditionNotBoolError(AST::ValueType type);
-    };
-    
+class FunctionRedeclarationError : public Error
+{
+  public:
+    explicit FunctionRedeclarationError(std::string function);
+};
 
-} // namespace SED::Analyzable
+class DivisionByZeroError : public Error
+{
+  public:
+    explicit DivisionByZeroError();
+};
+
+// 条件语句中的条件表达式不是bool类型
+class ConditionNotBoolError : public Error
+{
+  public:
+    explicit ConditionNotBoolError(AST::ValueType type);
+};
+
+} // namespace SED::Error
 
 #endif // !SED_ERROR_DUMP_HPP
