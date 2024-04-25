@@ -23,6 +23,8 @@ class Node : public Generator::MermaidGenerator, public Generator::IRGenerator, 
   public:
     enum class NodeClass
     {
+        // Unknown, 如果是这个类型，说明有错误
+        UNKNOWN,
         // Constant
         INT_32,
         FLOAT_32,
@@ -52,7 +54,6 @@ class Node : public Generator::MermaidGenerator, public Generator::IRGenerator, 
     } nodeClass;
     static std::map<NodeClass, std::string> NodeClassEnumMap;
     static std::string NodeClassEnumMapToString(NodeClass nodeClass);
-
     yy::position begin;
     yy::position end;
     Node(NodeClass _nodeClass);
@@ -61,16 +62,24 @@ class Node : public Generator::MermaidGenerator, public Generator::IRGenerator, 
     virtual void toIR() = 0;
     virtual void analyze() = 0;
 };
-
+/**
+ * @brief 变量声明
+ * (const) int a = 1;
+ * TODO: 1. 支持const
+ * TODO: 2. 语义分析不完整, 需要继续考虑
+ */
 class VariableDeclaration : public Node
 {
+  private:
     ValueType type;
     Variable *variable;
     Value *value;
-    bool isConst;
+    bool canReassign;
 
   public:
     explicit VariableDeclaration();
+
+    /*set, get*/
 
     VariableDeclaration *setVariable(Variable *_variable);
 
@@ -78,7 +87,7 @@ class VariableDeclaration : public Node
 
     VariableDeclaration *setType(ValueType _type);
 
-    VariableDeclaration *setIsConst(bool _isConst);
+    VariableDeclaration *setCanReassign(bool _canReassign);
 
     Variable *getVariable() const;
 
@@ -86,11 +95,15 @@ class VariableDeclaration : public Node
 
     ValueType getType() const;
 
-    bool getIsConst() const;
+    bool getCanReassign() const;
+
+    /* 对于generator接口的实现 */
 
     void toMermaid() override;
 
     void toIR() override;
+
+    /* 对于analyzer接口的实现 */
 
     void analyze() override;
 };

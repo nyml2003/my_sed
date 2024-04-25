@@ -14,7 +14,9 @@
 namespace SED::AST
 {
 
-/*---------------------Node---------------------*/
+/*
+ * 以下是Node的实现
+ */
 
 Node::Node(NodeClass _nodeClass) : nodeClass(_nodeClass)
 {
@@ -105,9 +107,9 @@ VariableDeclaration *VariableDeclaration::setType(ValueType _type)
     return this;
 }
 
-VariableDeclaration *VariableDeclaration::setIsConst(bool _isConst)
+VariableDeclaration *VariableDeclaration::setCanReassign(bool _canReassign)
 {
-    isConst = _isConst;
+    canReassign = _canReassign;
     return this;
 }
 
@@ -126,9 +128,9 @@ ValueType VariableDeclaration::getType() const
     return type;
 }
 
-bool VariableDeclaration::getIsConst() const
+bool VariableDeclaration::getCanReassign() const
 {
-    return isConst;
+    return canReassign;
 }
 
 void VariableDeclaration::analyze()

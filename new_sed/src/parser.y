@@ -110,7 +110,7 @@ DeclList :
     }
     | CONST DeclList {
         for (auto decl : $2) {
-            decl->setIsConst(true);
+            decl->setCanReassign(false);
         }
         $$ = $2;
     }
