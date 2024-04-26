@@ -2,6 +2,7 @@
 #ifndef SED_AST_HPP
 #define SED_AST_HPP
 #include "analyzer.hpp"
+#include "enumeration.hpp"
 #include "error.hpp"
 #include "generator.hpp"
 #include "ir.hpp"
@@ -13,51 +14,17 @@ namespace SED::AST
 {
 class Value;
 class Variable;
-enum class ValueType;
-
-extern std::map<NodeClass, std::string> NodeClassEnumMap;
-extern std::string NodeClassEnumMapToString(NodeClass nodeClass);
 
 class Node : public Generator::MermaidGenerator, public Generator::IRGenerator, public Analyzer::Analyzable
 {
+  private:
+    Enumeration::NodeClass nodeClass;
+
   public:
-    enum class NodeClass
-    {
-        // Unknown, 如果是这个类型，说明有错误
-        UNKNOWN,
-        // Constant
-        INT_32,
-        FLOAT_32,
-        BOOLEAN,
-        POINTER,
-        CHAR,
-        VOID,
-        // Mutable
-        UNARY,
-        BINARY,
-        VARIABLE,
-        FUNCTION_CALL,
-        // Statement
-        RETURN_STATEMENT,
-        WHILE_STATEMENT,
-        IF_STATEMENT,
-        CONTINUE_STATEMENT,
-        EXPRESSION_STATEMENT,
-        BREAK_STATEMENT,
-        ASSIGNMENT,
-        // others
-        VARIABLE_DECLARATION,
-        FUNCTION_DECLARATION,
-        FUNCTION_DEFINITION,
-        COMPILATION_UNIT,
-        BLOCK,
-    } nodeClass;
-    static std::map<NodeClass, std::string> NodeClassEnumMap;
-    static std::string NodeClassEnumMapToString(NodeClass nodeClass);
     yy::position begin;
     yy::position end;
-    Node(NodeClass _nodeClass);
-    NodeClass getNodeClass() const;
+    Node(Enumeration::NodeClass _nodeClass);
+    Enumeration::NodeClass getNodeClass() const;
     virtual void toMermaid() = 0;
     virtual void toIR() = 0;
     virtual void analyze() = 0;
@@ -71,7 +38,7 @@ class Node : public Generator::MermaidGenerator, public Generator::IRGenerator, 
 class VariableDeclaration : public Node
 {
   private:
-    ValueType type;
+    Enumeration::ValueType type;
     Variable *variable;
     Value *value;
     bool canReassign;
@@ -85,7 +52,7 @@ class VariableDeclaration : public Node
 
     VariableDeclaration *setValue(Value *_value);
 
-    VariableDeclaration *setType(ValueType _type);
+    VariableDeclaration *setType(Enumeration::ValueType _type);
 
     VariableDeclaration *setCanReassign(bool _canReassign);
 
@@ -93,7 +60,7 @@ class VariableDeclaration : public Node
 
     Value *getValue() const;
 
-    ValueType getType() const;
+    Enumeration::ValueType getType() const;
 
     bool getCanReassign() const;
 
@@ -110,23 +77,29 @@ class VariableDeclaration : public Node
 
 class Assignment : public Node
 {
+  private:
     Variable *variable;
     Value *value;
 
   public:
     explicit Assignment();
+    /*set, get*/
 
     Assignment *setVariable(Variable *_variable);
 
     Assignment *setValue(Value *_value);
 
+    Variable *getVariable() const;
+
+    Value *getValue() const;
+
+    /* 对于generator接口的实现 */
+
     void toMermaid() override;
 
     void toIR() override;
 
-    Variable *getVariable() const;
-
-    Value *getValue() const;
+    /* 对于analyzer接口的实现 */
 
     void analyze() override;
 };
@@ -135,128 +108,161 @@ class BreakStatement : public Node
 {
   public:
     explicit BreakStatement();
+    /* 对于generator接口的实现 */
     void toMermaid() override;
-
     void toIR() override;
+    /* 对于analyzer接口的实现 */
     void analyze() override;
 };
 
 class FunctionDeclaration : public Node
 {
-    ValueType returnType;
+  private:
+    Enumeration::ValueType returnType;
     std::string name;
 
   public:
     explicit FunctionDeclaration();
-    FunctionDeclaration *setReturnType(ValueType _returnType);
+    /*set, get*/
+    FunctionDeclaration *setReturnType(Enumeration::ValueType _returnType);
     FunctionDeclaration *setName(const std::string &_name);
-    ValueType getReturnType() const;
+    Enumeration::ValueType getReturnType() const;
     std::string getName() const;
+    /* 对于generator接口的实现 */
     void toMermaid() override;
     void toIR() override;
+    /* 对于analyzer接口的实现 */
     void analyze() override;
 };
 
 class ExpressionStatement : public Node
 {
+  private:
     Value *value;
 
   public:
     explicit ExpressionStatement();
+    /*set, get*/
     ExpressionStatement *setValue(Value *_value);
     Value *getValue() const;
+    /* 对于generator接口的实现 */
     void toMermaid() override;
     void toIR() override;
+    /* 对于analyzer接口的实现 */
     void analyze() override;
 };
 
 class CompilationUnit : public Node
 {
+  private:
     std::vector<Node *> nodes;
 
   public:
     explicit CompilationUnit();
+    /*set, get*/
     CompilationUnit *setNodes(const std::vector<Node *> &_nodes);
     std::vector<Node *> getNodes() const;
+    /* 对于generator接口的实现 */
     void toMermaid() override;
     void toIR() override;
+    /* 对于analyzer接口的实现 */
     void analyze() override;
 };
 
 class Block : public Node
 {
+  private:
     std::vector<Node *> nodes;
 
   public:
     explicit Block();
+    /*set, get*/
     Block *setNodes(const std::vector<Node *> &_nodes);
     std::vector<Node *> getNodes() const;
+    /* 对于generator接口的实现 */
     void toMermaid() override;
     void toIR() override;
+    /* 对于analyzer接口的实现 */
     void analyze() override;
 };
 
 class FunctionDefinition : public Node
 {
+  private:
     FunctionDeclaration *declaration;
     Block *block;
 
   public:
     explicit FunctionDefinition();
+    /*set, get*/
     FunctionDefinition *setDeclaration(FunctionDeclaration *_declaration);
     FunctionDefinition *setBlock(Block *_block);
     FunctionDeclaration *getDeclaration() const;
     Block *getBlock() const;
+    /* 对于generator接口的实现 */
     void toMermaid() override;
     void toIR() override;
+    /* 对于analyzer接口的实现 */
     void analyze() override;
 };
 
 class ReturnStatement : public Node
 {
+  private:
     Value *value;
 
   public:
     explicit ReturnStatement();
+    /*set, get*/
     ReturnStatement *setValue(Value *_value);
     Value *getValue() const;
+    /* 对于generator接口的实现 */
     void toMermaid() override;
     void toIR() override;
+    /* 对于analyzer接口的实现 */
     void analyze() override;
 };
 
 class WhileStatement : public Node
 {
+  private:
     Value *condition;
-    Node *body;
+    Block *body;
 
   public:
     explicit WhileStatement();
+    /*set, get*/
     WhileStatement *setCondition(Value *_condition);
-    WhileStatement *setBody(Node *_body);
+    WhileStatement *setBody(Block *_body);
     Value *getCondition() const;
-    Node *getBody() const;
+    Block *getBody() const;
+    /* 对于generator接口的实现 */
     void toMermaid() override;
     void toIR() override;
+    /* 对于analyzer接口的实现 */
     void analyze() override;
 };
 
 class IfStatement : public Node
 {
+  private:
     Value *condition;
-    Node *thenBody;
-    Node *elseBody;
+    Block *thenBody;
+    Block *elseBody;
 
   public:
     explicit IfStatement();
+    /*set, get*/
     IfStatement *setCondition(Value *_condition);
-    IfStatement *setThenBody(Node *_thenBody);
-    IfStatement *setElseBody(Node *_elseBody);
+    IfStatement *setThenBody(Block *_thenBody);
+    IfStatement *setElseBody(Block *_elseBody);
     Value *getCondition() const;
-    Node *getThenBody() const;
-    Node *getElseBody() const;
+    Block *getThenBody() const;
+    Block *getElseBody() const;
+    /* 对于generator接口的实现 */
     void toMermaid() override;
     void toIR() override;
+    /* 对于analyzer接口的实现 */
     void analyze() override;
 };
 
@@ -264,8 +270,10 @@ class ContinueStatement : public Node
 {
   public:
     explicit ContinueStatement();
+    /* 对于generator接口的实现 */
     void toMermaid() override;
     void toIR() override;
+    /* 对于analyzer接口的实现 */
     void analyze() override;
 };
 }; // namespace SED::AST

@@ -18,11 +18,11 @@ struct AnalyzerContext
 {
     AnalyzerContext();
     std::vector<std::map<std::string, AST::Constant *>> variables;
-    std::vector<std::map<std::string, AST::ValueType>> functions;
+    std::vector<std::map<std::string, Enumeration::ValueType>> functions;
     void add(AST::Variable *variable, AST::Constant *value);
-    void add(std::string name, AST::ValueType type);
+    void add(std::string name, Enumeration::ValueType type);
     AST::Constant *get(AST::Variable *variable);
-    AST::ValueType get(std::string name);
+    Enumeration::ValueType get(std::string name);
     bool exists(AST::Variable *variable);
     bool exists(std::string name);
     void set(AST::Variable *variable, AST::Constant *value);

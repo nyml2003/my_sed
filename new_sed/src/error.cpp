@@ -2,8 +2,28 @@
 #include "value.hpp"
 namespace SED::Error
 {
-Error::Error(Type type, Code code, std::string message) : type(type), code(code), message(message)
+
+std::map<Enumeration::ValueType, std::string> ValueTypeEnumMap = {{Enumeration::ValueType::INT_32, "int32"},
+                                                                  {Enumeration::ValueType::FLOAT_32, "float32"},
+                                                                  {Enumeration::ValueType::BOOLEAN, "bool"},
+                                                                  {Enumeration::ValueType::VOID, "void"},
+                                                                  {Enumeration::ValueType::CHAR, "char"}};
+
+std::string errorValueTypeWrapper(Enumeration::ValueType type)
 {
+    return ValueTypeEnumMap[type];
+}
+
+std::map<Enumeration::Operator, std::string> OperatorEnumMap = {
+    {Enumeration::Operator::ADD, "+"}, {Enumeration::Operator::SUB, "-"}, {Enumeration::Operator::MUL, "*"},
+    {Enumeration::Operator::DIV, "/"}, {Enumeration::Operator::MOD, "%"}, {Enumeration::Operator::AND, "&&"},
+    {Enumeration::Operator::OR, "||"}, {Enumeration::Operator::NOT, "!"}, {Enumeration::Operator::EQ, "=="},
+    {Enumeration::Operator::NE, "!="}, {Enumeration::Operator::LT, "<"},  {Enumeration::Operator::LE, "<="},
+    {Enumeration::Operator::GT, ">"},  {Enumeration::Operator::GE, ">="}};
+
+std::string errorOperatorWrapper(Enumeration::Operator op)
+{
+    return OperatorEnumMap[op];
 }
 
 std::map<Error::Code, std::string> Error::CodeEnumMap = {{Code::SYNTAX_ERROR, "Syntax Error"},
@@ -44,10 +64,13 @@ void Error::debug()
     std::cout << "\033[36mDebug: \033[0m" << message << std::endl;
 }
 
-TypeMismatchError::TypeMismatchError(AST::ValueType type1, AST::ValueType type2)
+Error::Error(Type type, Code code, std::string message) : type(type), code(code), message(message)
+{
+}
+
+TypeMismatchError::TypeMismatchError(Enumeration::ValueType type1, Enumeration::ValueType type2)
     : Error(Type::ERROR, Code::SEMANTIC_ERROR,
-            "Type Mismatch: the statement trys to assign a " + AST::ValueTypeEnumMapToString(type2) + " value to a " +
-                AST::ValueTypeEnumMapToString(type1) + " variable")
+            "Type Mismatch: " + errorValueTypeWrapper(type1) + " and " + errorValueTypeWrapper(type2))
 {
 }
 
@@ -61,16 +84,17 @@ UndeclaredFunctionError::UndeclaredFunctionError(std::string function)
 {
 }
 
-InvalidOperationError::InvalidOperationError(AST::ValueType type1, AST::Operator op, AST::ValueType type2)
+InvalidOperationError::InvalidOperationError(Enumeration::ValueType type1, Enumeration::Operator op,
+                                             Enumeration::ValueType type2)
     : Error(Type::ERROR, Code::SEMANTIC_ERROR,
-            "Invalid Operation: " + AST::ValueTypeEnumMapToString(type1) + " " + AST::OperatorEnumMapToString(op) +
-                " " + AST::ValueTypeEnumMapToString(type2))
+            "Invalid Operation: " + errorValueTypeWrapper(type1) + " " + errorOperatorWrapper(op) + " " +
+                errorValueTypeWrapper(type2))
 {
 }
 
-InvalidOperationError::InvalidOperationError(AST::ValueType type1, AST::Operator op)
+InvalidOperationError::InvalidOperationError(Enumeration::ValueType type1, Enumeration::Operator op)
     : Error(Type::ERROR, Code::SEMANTIC_ERROR,
-            "Invalid Operation: " + AST::ValueTypeEnumMapToString(type1) + " " + AST::OperatorEnumMapToString(op))
+            "Invalid Operation: " + errorValueTypeWrapper(type1) + " " + errorOperatorWrapper(op))
 {
 }
 
@@ -88,8 +112,8 @@ DivisionByZeroError::DivisionByZeroError() : Error(Type::ERROR, Code::RUNTIME_ER
 {
 }
 
-ConditionNotBoolError::ConditionNotBoolError(AST::ValueType type)
-    : Error(Type::ERROR, Code::RUNTIME_ERROR, "Condition Not Bool: " + AST::ValueTypeEnumMapToString(type))
+ConditionNotBoolError::ConditionNotBoolError(Enumeration::ValueType type)
+    : Error(Type::ERROR, Code::SEMANTIC_ERROR, "Condition Not Bool: " + errorValueTypeWrapper(type))
 {
 }
 } // namespace SED::Error

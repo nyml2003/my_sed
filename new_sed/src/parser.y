@@ -39,8 +39,8 @@
 %type < std::vector< SED::AST::VariableDeclaration* > > DeclList
 %type < std::vector< SED::AST::Assignment* > > DefList
 %type < SED::AST::Value* > UnaryExp MulExp AddExp RelExp EqExp LAndExp LOrExp PrimaryExp Exp Val 
-%type < SED::AST::Operator > UNARYOP
-%type < SED::AST::ValueType > Type
+%type < SED::Enumeration::Operator > UNARYOP
+%type < SED::Enumeration::ValueType > Type
 %type < SED::AST::FunctionDefinition* > FuncDef
 %type < SED::AST::Block* > Block
 %type < SED::AST::CompilationUnit* > CompUnit
@@ -48,9 +48,10 @@
 %type < std::vector< SED::AST::Node* > > CompUnitContainer
 %token <std::string> IDENT
 %token RETURN CONST
-%token TYPE_INT TYPE_VOID TYPE_FLOAT TYPE_BOOL
+%token TYPE_INT TYPE_VOID TYPE_FLOAT TYPE_BOOL TYPE_CHAR
 %token<std::int32_t> INT_CONST
-%token<float> FLOAT_CONST
+%token<float> FLOAT_CONST 
+%token<char> CHAR_CONST
 %token LPAREN  SEMICOLON COMMA LBRACE RBRACE IF WHILE CONTINUE
 %token PLUS MINUS STAR SLASH PERCENT AND OR EQ NE LT GT LE GE NOT TRUE FALSE BREAK
 %right ASSIGN
@@ -88,13 +89,13 @@ DeclList :
                 decl->setValue(def->getValue());
             }else{
                 switch ($1) {
-                    case SED::AST::ValueType::INT_32:
+                    case SED::Enumeration::ValueType::INT_32:
                         decl->setValue((new SED::AST::Int32()));
                         break;
-                    case SED::AST::ValueType::FLOAT_32:
+                    case SED::Enumeration::ValueType::FLOAT_32:
                         decl->setValue((new SED::AST::Float32()));
                         break;
-                    case SED::AST::ValueType::BOOLEAN:
+                    case SED::Enumeration::ValueType::BOOLEAN:
                         decl->setValue(new SED::AST::Boolean());
                         break;
                     default:
@@ -117,10 +118,11 @@ DeclList :
     ;
 
 Type:
-    TYPE_INT { $$ = SED::AST::ValueType::INT_32; }
-    | TYPE_FLOAT { $$ = SED::AST::ValueType::FLOAT_32; }
-    | TYPE_VOID { $$ = SED::AST::ValueType::VOID; }
-    | TYPE_BOOL { $$ = SED::AST::ValueType::BOOLEAN; }
+    TYPE_INT { $$ = SED::Enumeration::ValueType::INT_32; }
+    | TYPE_FLOAT { $$ = SED::Enumeration::ValueType::FLOAT_32; }
+    | TYPE_VOID { $$ = SED::Enumeration::ValueType::VOID; }
+    | TYPE_BOOL { $$ = SED::Enumeration::ValueType::BOOLEAN; }
+    | TYPE_CHAR { $$ = SED::Enumeration::ValueType::CHAR; }
     ;
 
 Def:
@@ -182,13 +184,37 @@ Stmt:
     | Exp SEMICOLON { $$ = $1; }
     | SEMICOLON {}
     | WHILE LPAREN Exp RPAREN Stmt {
-        $$ = (new SED::AST::WhileStatement())->setCondition($3)->setBody($5);
+        SED::AST::Block* body;
+        if (auto block = dynamic_cast<SED::AST::Block*>($5)) {
+            body = block;
+        }else{
+            body = (new SED::AST::Block())->setNodes(std::vector< SED::AST::Node* >({$5}));
+        }
+        $$ = (new SED::AST::WhileStatement())->setCondition($3)->setBody(body);
     }
     | IF LPAREN Exp RPAREN Stmt ELSE Stmt { 
-        $$ = (new SED::AST::IfStatement())->setCondition($3)->setThenBody($5)->setElseBody($7);
+        SED::AST::Block* thenBody;
+        if (auto block = dynamic_cast<SED::AST::Block*>($5)) {
+            thenBody = block;
+        }else{
+            thenBody = (new SED::AST::Block())->setNodes(std::vector< SED::AST::Node* >({$5}));
+        }
+        SED::AST::Block* elseBody;
+        if (auto block = dynamic_cast<SED::AST::Block*>($7)) {
+            elseBody = block;
+        }else{
+            elseBody = (new SED::AST::Block())->setNodes(std::vector< SED::AST::Node* >({$7}));
+        }
+        $$ = (new SED::AST::IfStatement())->setCondition($3)->setThenBody(thenBody)->setElseBody(elseBody);
     }
     | IF LPAREN Exp RPAREN Stmt {
-        $$ = (new SED::AST::IfStatement())->setCondition($3)->setThenBody($5);
+        SED::AST::Block* thenBody;
+        if (auto block = dynamic_cast<SED::AST::Block*>($5)) {
+            thenBody = block;
+        }else{
+            thenBody = (new SED::AST::Block())->setNodes(std::vector< SED::AST::Node* >({$5}));
+        }
+        $$ = (new SED::AST::IfStatement())->setCondition($3)->setThenBody(thenBody);
     }
     
     | CONTINUE SEMICOLON {
@@ -219,6 +245,7 @@ PrimaryExp:
     | LPAREN Exp RPAREN { $$ = $2; }
     | INT_CONST { $$ = (new SED::AST::Int32())->setValue($1); }
     | FLOAT_CONST { $$ = (new SED::AST::Float32())->setValue($1); }
+    | CHAR_CONST { $$ = (new SED::AST::Char())->setValue($1); }
     | TRUE { $$ = (new SED::AST::Boolean())->setValue(true); }
     | FALSE { $$ = (new SED::AST::Boolean())->setValue(false); }
     | IDENT LPAREN RPAREN { 
@@ -227,9 +254,9 @@ PrimaryExp:
     ;
 
 UNARYOP:
-    MINUS { $$ = SED::AST::Operator::NEG; }
-    | NOT { $$ = SED::AST::Operator::NOT; }
-    | PLUS { $$ = SED::AST::Operator::POS; }
+    MINUS { $$ = SED::Enumeration::Operator::NEG; }
+    | NOT { $$ = SED::Enumeration::Operator::NOT; }
+    | PLUS { $$ = SED::Enumeration::Operator::POS; }
     ;
 
 UnaryExp:
@@ -264,67 +291,75 @@ UnaryExp:
             break;
         }
     }
-    ;
+    | LPAREN TYPE_CHAR RPAREN UnaryExp { 
+        try{
+            $$ = $4->asChar();
+        }catch(std::runtime_error& e){
+            std::cerr << e.what() << std::endl;
+            $$ = $4;
+            break;
+        }
+    }
 
 MulExp:
     UnaryExp { $$ = $1; }
     | MulExp STAR UnaryExp { 
-        $$ = (new SED::AST::Binary())->setOp(SED::AST::Operator::MUL)->setLeft($1)->setRight($3);
+        $$ = (new SED::AST::Binary())->setOp(SED::Enumeration::Operator::MUL)->setLeft($1)->setRight($3);
     }
     | MulExp SLASH UnaryExp { 
-        $$ = (new SED::AST::Binary())->setOp(SED::AST::Operator::DIV)->setLeft($1)->setRight($3);
+        $$ = (new SED::AST::Binary())->setOp(SED::Enumeration::Operator::DIV)->setLeft($1)->setRight($3);
     }
     | MulExp PERCENT UnaryExp { 
-        $$ = (new SED::AST::Binary())->setOp(SED::AST::Operator::MOD)->setLeft($1)->setRight($3);
+        $$ = (new SED::AST::Binary())->setOp(SED::Enumeration::Operator::MOD)->setLeft($1)->setRight($3);
     }
     ;
 
 AddExp:
     MulExp { $$ = $1; }
     | AddExp PLUS MulExp { 
-        $$ = (new SED::AST::Binary())->setOp(SED::AST::Operator::ADD)->setLeft($1)->setRight($3);
+        $$ = (new SED::AST::Binary())->setOp(SED::Enumeration::Operator::ADD)->setLeft($1)->setRight($3);
     }
     | AddExp MINUS MulExp { 
-        $$ = (new SED::AST::Binary())->setOp(SED::AST::Operator::SUB)->setLeft($1)->setRight($3);
+        $$ = (new SED::AST::Binary())->setOp(SED::Enumeration::Operator::SUB)->setLeft($1)->setRight($3);
     }
     ;
 
 RelExp:
     AddExp { $$ = $1; } 
     | RelExp LT AddExp { 
-        $$ = (new SED::AST::Binary())->setOp(SED::AST::Operator::LT)->setLeft($1)->setRight($3);
+        $$ = (new SED::AST::Binary())->setOp(SED::Enumeration::Operator::LT)->setLeft($1)->setRight($3);
     }
     | RelExp GT AddExp { 
-        $$ = (new SED::AST::Binary())->setOp(SED::AST::Operator::GT)->setLeft($1)->setRight($3);
+        $$ = (new SED::AST::Binary())->setOp(SED::Enumeration::Operator::GT)->setLeft($1)->setRight($3);
     }
     | RelExp LE AddExp { 
-        $$ = ( new SED::AST::Binary())->setOp(SED::AST::Operator::LE)->setLeft($1)->setRight($3);
+        $$ = ( new SED::AST::Binary())->setOp(SED::Enumeration::Operator::LE)->setLeft($1)->setRight($3);
     }
     | RelExp GE AddExp { 
-        $$ = (new SED::AST::Binary())->setOp(SED::AST::Operator::GE)->setLeft($1)->setRight($3);
+        $$ = (new SED::AST::Binary())->setOp(SED::Enumeration::Operator::GE)->setLeft($1)->setRight($3);
     }
     ;
 
 EqExp:
     RelExp { $$ = $1; }
     | EqExp EQ RelExp { 
-        $$ = (new SED::AST::Binary())->setOp(SED::AST::Operator::EQ)->setLeft($1)->setRight($3);
+        $$ = (new SED::AST::Binary())->setOp(SED::Enumeration::Operator::EQ)->setLeft($1)->setRight($3);
     }
     | EqExp NE RelExp { 
-        $$ = (new SED::AST::Binary())->setOp(SED::AST::Operator::NE)->setLeft($1)->setRight($3);
+        $$ = (new SED::AST::Binary())->setOp(SED::Enumeration::Operator::NE)->setLeft($1)->setRight($3);
     }
     ;
 
 LAndExp:
     EqExp { $$ = $1; }
     | LAndExp AND EqExp { 
-        $$ = (new SED::AST::Binary())->setOp(SED::AST::Operator::AND)->setLeft($1)->setRight($3);
+        $$ = (new SED::AST::Binary())->setOp(SED::Enumeration::Operator::AND)->setLeft($1)->setRight($3);
     }
 
 LOrExp:
     LAndExp { $$ = $1; }
     | LOrExp OR LAndExp { 
-        $$ = (new SED::AST::Binary())->setOp(SED::AST::Operator::OR)->setLeft($1)->setRight($3);
+        $$ = (new SED::AST::Binary())->setOp(SED::Enumeration::Operator::OR)->setLeft($1)->setRight($3);
     }
 
 %%

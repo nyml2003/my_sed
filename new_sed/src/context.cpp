@@ -12,7 +12,7 @@ namespace SED::Context
 AnalyzerContext::AnalyzerContext()
 {
     variables.push_back(std::map<std::string, AST::Constant *>());
-    functions.push_back(std::map<std::string, AST::ValueType>());
+    functions.push_back(std::map<std::string, Enumeration::ValueType>());
 }
 
 void AnalyzerContext::add(AST::Variable *variable, AST::Constant *value)
@@ -66,7 +66,7 @@ void AnalyzerContext::set(AST::Variable *variable, AST::Constant *value)
     Error::UndeclaredVariableError(name).error();
 }
 
-void AnalyzerContext::add(std::string name, AST::ValueType type)
+void AnalyzerContext::add(std::string name, Enumeration::ValueType type)
 {
     if (functions.back().find(name) != functions.back().end())
     {
@@ -87,7 +87,7 @@ bool AnalyzerContext::exists(std::string name)
     return false;
 }
 
-AST::ValueType AnalyzerContext::get(std::string name)
+Enumeration::ValueType AnalyzerContext::get(std::string name)
 {
     for (auto it = functions.rbegin(); it != functions.rend(); it++)
     {
@@ -97,7 +97,7 @@ AST::ValueType AnalyzerContext::get(std::string name)
         }
     }
     Error::UndeclaredFunctionError(name).error();
-    return AST::ValueType::VOID;
+    return Enumeration::ValueType::VOID;
 }
 
 void AnalyzerContext::enter()

@@ -1,6 +1,7 @@
 
 #ifndef SED_ERROR_DUMP_HPP
 #define SED_ERROR_DUMP_HPP
+#include "enumeration.hpp"
 #include <map>
 #include <string>
 #include <vector>
@@ -8,12 +9,17 @@ namespace SED::AST
 {
 class Constant;
 class Variable;
-enum class ValueType;
-enum class Operator;
+
 } // namespace SED::AST
 
 namespace SED::Error
 {
+
+extern std::map<Enumeration::ValueType, std::string> errorValueTypeMap;
+extern std::string errorValueTypeWrapper(Enumeration::ValueType valueType);
+extern std::map<Enumeration::Operator, std::string> errorOperatorMap;
+extern std::string errorOperatorWrapper(Enumeration::Operator op);
+
 class Error
 {
   protected:
@@ -47,7 +53,7 @@ class Error
 class TypeMismatchError : public Error
 {
   public:
-    explicit TypeMismatchError(AST::ValueType type1, AST::ValueType type2);
+    explicit TypeMismatchError(Enumeration::ValueType type1, Enumeration::ValueType type2);
 };
 
 class UndeclaredVariableError : public Error
@@ -65,8 +71,9 @@ class UndeclaredFunctionError : public Error
 class InvalidOperationError : public Error
 {
   public:
-    explicit InvalidOperationError(AST::ValueType type1, AST::Operator op, AST::ValueType type2);
-    explicit InvalidOperationError(AST::ValueType type1, AST::Operator op);
+    explicit InvalidOperationError(Enumeration::ValueType type1, Enumeration::Operator op,
+                                   Enumeration::ValueType type2);
+    explicit InvalidOperationError(Enumeration::ValueType type1, Enumeration::Operator op);
 };
 
 class VariableRedeclarationError : public Error
@@ -91,7 +98,7 @@ class DivisionByZeroError : public Error
 class ConditionNotBoolError : public Error
 {
   public:
-    explicit ConditionNotBoolError(AST::ValueType type);
+    explicit ConditionNotBoolError(Enumeration::ValueType type);
 };
 
 } // namespace SED::Error

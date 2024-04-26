@@ -8,6 +8,7 @@
 %{
     yy::parser::symbol_type make_NUMBER_INT(const std::string&s,const yy::parser::location_type& loc, int base);
     yy::parser::symbol_type make_NUMBER_FLOAT(const std::string&s,const yy::parser::location_type& loc);
+    yy::parser::symbol_type make_CHAR_CONST(const std::string&s,const yy::parser::location_type& loc);
 %}
 
 %{
@@ -39,21 +40,18 @@
 "&&" {return yy::parser::make_AND(loc);}
 "||" {return yy::parser::make_OR(loc);}
 "!" {return yy::parser::make_NOT(loc);}
-
+"'"[a-zA-Z0-9_]+"'" {return make_CHAR_CONST(yytext, loc);}
 "0."[0-9]+ {return make_NUMBER_FLOAT(yytext, loc);}
+[1-9][0-9]* {return make_NUMBER_INT(yytext, loc, 10);}
 [0-9][1-9]*"."[0-9]* {return make_NUMBER_FLOAT(yytext, loc);}
-
-
 "0x"[0-9a-fA-F]+ {return make_NUMBER_INT(yytext, loc, 16);}
 "0b"[01]+ {return make_NUMBER_INT(yytext, loc, 2);}
 "0"[0-7]* {return make_NUMBER_INT(yytext, loc, 8);}
 "0" {return make_NUMBER_INT(yytext, loc, 10);}
-[1-9][0-9]* {return make_NUMBER_INT(yytext, loc, 10);}
-
-
 "int" {return yy::parser::make_TYPE_INT(loc);}
 "void" {return yy::parser::make_TYPE_VOID(loc);}
 "float" {return yy::parser::make_TYPE_FLOAT(loc);}
+"char" {return yy::parser::make_TYPE_CHAR(loc);}
 "const" {return yy::parser::make_CONST(loc);}
 "if" {return yy::parser::make_IF(loc);}
 "else" {return yy::parser::make_ELSE(loc);}
@@ -98,6 +96,10 @@ yy::parser::symbol_type make_NUMBER_FLOAT(const std::string&s,const yy::parser::
     return yy::parser::make_FLOAT_CONST(value, loc);
 }
 
+yy::parser::symbol_type make_CHAR_CONST(const std::string&s,const yy::parser::location_type& loc) {
+    return yy::parser::make_CHAR_CONST(s[1], loc);
+}
+
 void Driver::scan_begin() {
     yy_flex_debug=this->traceScanning;
     yyin=freopen(this->sourceFileName.empty() || this->sourceFileName=="-" ? nullptr : this->sourceFileName.c_str(), "r", stdin);
@@ -108,3 +110,4 @@ void Driver::scan_end() {
         fclose(yyin);
     }
 }
+

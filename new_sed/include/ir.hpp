@@ -8,7 +8,6 @@ namespace SED::IR
 {
 class Statement
 {
-
   public:
     virtual void output() = 0;
 };
