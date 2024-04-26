@@ -45,23 +45,23 @@ std::string Error::TypeEnumMapToString(Type type)
 
 void Error::info()
 {
-    std::cout << "\033[34mINFO: \033[0m" << message << std::endl;
+    std::cout << "INFO: " << message << std::endl;
 }
 
 void Error::warning()
 {
-    std::cerr << "\033[33mWarning: \033[0m" << message << std::endl;
+    std::cerr << "Warning: " << message << std::endl;
 }
 
 void Error::error()
 {
-    std::cerr << "\033[31m" << CodeEnumMapToString(code) << ": \033[0m" << message << std::endl;
+    std::cerr << CodeEnumMapToString(code) << ": " << message << std::endl;
     exit(1);
 }
 
 void Error::debug()
 {
-    std::cout << "\033[36mDebug: \033[0m" << message << std::endl;
+    std::cout << "Debug: " << message << std::endl;
 }
 
 Error::Error(Type type, Code code, std::string message) : type(type), code(code), message(message)

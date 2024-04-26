@@ -1432,6 +1432,10 @@ Constant *Char::_sub_(Value *other)
         {
             return (new Char())->setValue(value.value() - ((Int32 *)otherDirect)->getValue());
         }
+        else if (otherDirect->isChar())
+        {
+            return (new Int32())->setValue(value.value() - ((Char *)otherDirect)->getValue());
+        }
     }
     return Constant::_sub_(other);
 }
@@ -1441,6 +1445,10 @@ Enumeration::ValueType Char::_sub_type_(Enumeration::ValueType other)
     if (other == Enumeration::ValueType::INT_32)
     {
         return Enumeration::ValueType::CHAR;
+    }
+    else if (other == Enumeration::ValueType::CHAR)
+    {
+        return Enumeration::ValueType::INT_32;
     }
     return Constant::_sub_type_(other);
 }

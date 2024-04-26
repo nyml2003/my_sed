@@ -79,6 +79,7 @@
 | + | Char | Int32 | Char | 字符加整数 |
 | - | Char | Int32 | Char | 字符减整数 |
 | + | Int32 | Char | Char | 整数加字符 |
+| - | Int32 | Char | Char | 整数减字符 |
 | == | Char | Char | Boolean | 字符相等 |
 | != | Char | Char | Boolean | 字符不相等 |
 | > | Char | Char | Boolean | 大于 |

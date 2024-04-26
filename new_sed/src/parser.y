@@ -98,6 +98,8 @@ DeclList :
                     case SED::Enumeration::ValueType::BOOLEAN:
                         decl->setValue(new SED::AST::Boolean());
                         break;
+                    case SED::Enumeration::ValueType::CHAR:
+                        decl->setValue(new SED::AST::Char());
                     default:
                         break;
                 }

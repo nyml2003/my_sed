@@ -2,7 +2,7 @@
 int main(int argc, char *argv[])
 {
     std::cout << "Usage: " << argv[0] << " <input> <output.md> <output.err> <output.ll>\n";
-    std::string folderName = "/app/tests/test2/";
+    std::string folderName = "/app/tests/test1/";
     std::string input = (argc == 5) ? argv[1] : folderName + "in.sy";
     std::string md = (argc == 5) ? argv[2] : folderName + "out.md";
     std::string error = (argc == 5) ? argv[3] : folderName + "out.err";
