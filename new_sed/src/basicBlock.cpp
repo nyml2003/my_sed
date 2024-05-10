@@ -110,12 +110,6 @@ void BasicBlockManager::buildCFG()
                 basicBlocks[i]->setNext(next);
             }
         }
-        if (i != basicBlocks.size() - 1)
-        {
-            std::set<size_t> next = basicBlocks[i]->getNext();
-            next.insert(i + 1);
-            basicBlocks[i]->setNext(next);
-        }
     }
 }
 

@@ -716,15 +716,20 @@ void WhileStatement::toMermaid()
 void WhileStatement::toIR()
 {
     nextLabel();
-    size_t startLabel = getLabel();
+    size_t whileLabel = getLabel();
     nextLabel();
-    size_t endLabel = getLabel();
-    irs.push_back((new IR::Label())->setName(labelWrapper(startLabel)));
+    size_t bodyLabel = getLabel();
+    nextLabel();
+    size_t thenLabel = getLabel();
+    irs.push_back((new IR::Goto())->setLabel(labelWrapper(whileLabel)));
+    irs.push_back((new IR::Label())->setName(labelWrapper(whileLabel)));
     condition->toIR();
-    irs.push_back((new IR::Ifz())->setRegisterSource(getRegister())->setLabel(endLabel));
+    irs.push_back((new IR::Ifz())->setRegisterSource(getRegister())->setLabel(thenLabel));
+    irs.push_back((new IR::Goto())->setLabel(labelWrapper(bodyLabel)));
+    irs.push_back((new IR::Label())->setName(labelWrapper(bodyLabel)));
     body->toIR();
-    irs.push_back((new IR::Goto())->setLabel(labelWrapper(startLabel)));
-    irs.push_back((new IR::Label())->setName(labelWrapper(endLabel)));
+    irs.push_back((new IR::Goto())->setLabel(labelWrapper(whileLabel)));
+    irs.push_back((new IR::Label())->setName(labelWrapper(thenLabel)));
 }
 
 void WhileStatement::analyze()
