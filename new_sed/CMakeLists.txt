@@ -9,6 +9,14 @@ file(GLOB SED_SOURCE_FILES ${SED_SOURCE_DIR}/*.cpp)
 file(GLOB SED_HEADER_FILES ${SED_INCLUDE_DIR}/*.hpp ${SED_INCLUDE_DIR}/*.h ${SED_INCLUDE_DIR}/*.hh)
 add_compile_options(-Wall -Wextra -Werror -Wpedantic -Wno-unused-parameter -Wno-unused-variable -Wno-unused-function -Wno-unused-but-set-variable -Wno-unused-value -Wno-unused-local-typedefs)
 
+# llvm config
+set(LLVM_DIR "/usr/lib/llvm-14/cmake")
+find_package(LLVM REQUIRED CONFIG)
+include_directories(${LLVM_INCLUDE_DIRS})
+include_directories("/usr/lib/llvm-14/include")
+separate_arguments(LLVM_DEFINITIONS NATIVE_COMMAND ${LLVM_DEFINITIONS})
+add_definitions(${LLVM_DEFINITIONS})
+
 # Bison and Flex
 find_package(BISON REQUIRED)
 find_package(FLEX REQUIRED)
@@ -18,7 +26,7 @@ ADD_FLEX_BISON_DEPENDENCY(scanner parser)
 
 include_directories(${CMAKE_BINARY_DIR})
 include_directories(${SED_INCLUDE_DIR})
-add_executable(sed ${SED_MAIN_FILE} ${SED_SOURCE_FILES} ${SED_HEADER_FILES} ${BISON_parser_OUTPUTS} ${FLEX_scanner_OUTPUTS} )
+add_executable(sed ${SED_MAIN_FILE} ${SED_SOURCE_FILES} ${SED_HEADER_FILES} ${BISON_parser_OUTPUTS} ${FLEX_scanner_OUTPUTS} ${llvm_libs})
 target_link_libraries(sed "-lfl")
 
 enable_testing()
@@ -30,6 +38,7 @@ foreach (TEST_DIR ${TEST_DIRS})
     set (TEST_MD ${CMAKE_CURRENT_SOURCE_DIR}/tests/${TEST_DIR}/out.md)
     set(TEST_ERROR ${CMAKE_CURRENT_SOURCE_DIR}/tests/${TEST_DIR}/out.err)
     set(TEST_IR ${CMAKE_CURRENT_SOURCE_DIR}/tests/${TEST_DIR}/out.ir)
+    set(TEST_BLOCK ${CMAKE_CURRENT_SOURCE_DIR}/tests/${TEST_DIR}/block.md)
 
     if (NOT EXISTS ${TEST_INPUT})
         file(WRITE ${TEST_INPUT} "")
@@ -43,10 +52,13 @@ foreach (TEST_DIR ${TEST_DIRS})
     if (NOT EXISTS ${TEST_IR})
         file(WRITE ${TEST_IR} "")
     endif ()
+    if (NOT EXISTS ${TEST_BLOCK})
+        file(WRITE ${TEST_BLOCK} "")
+    endif ()
     
     add_test(
             NAME ${TEST_DIR}
-            COMMAND sed ${TEST_INPUT} ${TEST_MD} ${TEST_ERROR}  ${TEST_IR}
+            COMMAND sed ${TEST_INPUT} ${TEST_MD} ${TEST_ERROR}  ${TEST_IR} ${TEST_BLOCK}
             )
 
     set_tests_properties(${TEST_DIR} PROPERTIES

@@ -4,6 +4,7 @@
 
 #include "driver.hpp"
 #include "context.hpp"
+#include "error.hpp"
 
 namespace SED::Driver
 {
@@ -57,8 +58,8 @@ void Driver::parse()
     }
 }
 
-void Driver::error(const yy::location &l, const std::string &m)
+void Driver::error(const yy::location &loc, const std::string &msg)
 {
-    std::cerr << l << ": " << m << std::endl;
+    std::cerr << loc << ": " << msg << std::endl;
 }
 } // namespace SED::Driver

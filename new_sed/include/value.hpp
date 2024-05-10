@@ -398,10 +398,13 @@ class Variable : public Mutable
 class FunctionCall : public Mutable
 {
     std::string name;
+    std::vector<Value *> arguments;
 
   public:
     FunctionCall *setName(const std::string &_name);
     [[nodiscard]] const std::string &getName() const;
+    FunctionCall *setArguments(const std::vector<Value *> &_arguments);
+    [[nodiscard]] const std::vector<Value *> &getArguments() const;
     void toMermaid() override;
     void toIR() override;
     bool isConstant() override;

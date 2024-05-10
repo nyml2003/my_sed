@@ -2,6 +2,7 @@
 #ifndef SED_ERROR_DUMP_HPP
 #define SED_ERROR_DUMP_HPP
 #include "enumeration.hpp"
+#include "location.hh"
 #include <map>
 #include <string>
 #include <vector>
@@ -47,7 +48,9 @@ class Error
     void info();
     void warning();
     void error();
+    void errorWithLocation(const yy::location &l);
     void debug();
+    void locate();
 };
 
 class TypeMismatchError : public Error
@@ -99,6 +102,45 @@ class ConditionNotBoolError : public Error
 {
   public:
     explicit ConditionNotBoolError(Enumeration::ValueType type);
+};
+
+class FunctionNoReturnValueError : public Error
+{
+  public:
+    explicit FunctionNoReturnValueError(std::string function);
+};
+
+class UnexpectedTokenError : public Error
+{
+  public:
+    explicit UnexpectedTokenError(std::string token);
+};
+
+class VoidParameterError : public Error
+{
+  public:
+    explicit VoidParameterError(std::string function);
+};
+
+class FunctionCallArgumentTypeError : public Error
+{
+  public:
+    explicit FunctionCallArgumentTypeError(std::string function, int index, Enumeration::ValueType actualType,
+                                           Enumeration::ValueType predictedType);
+};
+
+// 不支持函数重载错误
+class FunctionOverloadError : public Error
+{
+  public:
+    explicit FunctionOverloadError(std::string function);
+};
+
+// 函数调用参数数量错误
+class FunctionCallArgumentCountError : public Error
+{
+  public:
+    explicit FunctionCallArgumentCountError(std::string function, int predictedCount, int actualCount);
 };
 
 } // namespace SED::Error

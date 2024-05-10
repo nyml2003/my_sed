@@ -125,12 +125,12 @@ void MermaidGenerator::putLabel(Enumeration::ValueType valueType)
 }
 
 std::map<Enumeration::Operator, std::string> irOperatorMap = {
-    {Enumeration::Operator::ADD, "add"}, {Enumeration::Operator::SUB, "sub"}, {Enumeration::Operator::MUL, "mul"},
-    {Enumeration::Operator::DIV, "div"}, {Enumeration::Operator::MOD, "mod"}, {Enumeration::Operator::AND, "and"},
-    {Enumeration::Operator::OR, "or"},   {Enumeration::Operator::EQ, "eq"},   {Enumeration::Operator::NE, "ne"},
-    {Enumeration::Operator::LT, "lt"},   {Enumeration::Operator::LE, "le"},   {Enumeration::Operator::GT, "gt"},
-    {Enumeration::Operator::GE, "ge"},   {Enumeration::Operator::POS, "pos"}, {Enumeration::Operator::NEG, "neg"},
-    {Enumeration::Operator::NOT, "not"}};
+    {Enumeration::Operator::ADD, "+"}, {Enumeration::Operator::SUB, "-"}, {Enumeration::Operator::MUL, "*"},
+    {Enumeration::Operator::DIV, "/"}, {Enumeration::Operator::MOD, "%"}, {Enumeration::Operator::AND, "&&"},
+    {Enumeration::Operator::OR, "||"}, {Enumeration::Operator::EQ, "=="}, {Enumeration::Operator::NE, "!="},
+    {Enumeration::Operator::LT, "<"},  {Enumeration::Operator::LE, "<="}, {Enumeration::Operator::GT, ">"},
+    {Enumeration::Operator::GE, ">="}, {Enumeration::Operator::POS, "+"}, {Enumeration::Operator::NEG, "-"},
+    {Enumeration::Operator::NOT, "!"}};
 
 std::string irOperatorWrapper(Enumeration::Operator op)
 {

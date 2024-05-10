@@ -35,7 +35,7 @@
 %type < SED::AST::Assignment* > Def
 %type < SED::AST::Node* > Stmt
 %type < SED::AST::FunctionDeclaration* > FuncDecl
-%type<SED::AST::Variable*> Var
+%type <SED::AST::Variable*> Var
 %type < std::vector< SED::AST::VariableDeclaration* > > DeclList
 %type < std::vector< SED::AST::Assignment* > > DefList
 %type < SED::AST::Value* > UnaryExp MulExp AddExp RelExp EqExp LAndExp LOrExp PrimaryExp Exp Val 
@@ -46,6 +46,8 @@
 %type < SED::AST::CompilationUnit* > CompUnit
 %type < std::vector< SED::AST::Node* > > BlockItemList
 %type < std::vector< SED::AST::Node* > > CompUnitContainer
+%type < std::vector< SED::AST::VariableDeclaration* > > FuncFParams
+%type < std::vector< SED::AST::Value* > > FuncRParams
 %token <std::string> IDENT
 %token RETURN CONST
 %token TYPE_INT TYPE_VOID TYPE_FLOAT TYPE_BOOL TYPE_CHAR
@@ -68,6 +70,10 @@ CompUnit:
         }
         driver.result->setNodes($1);
         $$ = driver.result; 
+        $$->begin.line = @1.begin.line;
+        $$->begin.column = @1.begin.column;
+        $$->end.line = @1.end.line;
+        $$->end.column = @1.end.column;
     }
     ;
 
@@ -81,6 +87,7 @@ CompUnitContainer:
 
 DeclList :
     Type DefList SEMICOLON {
+        std::cout << @1 << @2 << @3 << std::endl;
         $$ = std::vector< SED::AST::VariableDeclaration* >();
         for (auto def : $2) {
             auto decl = (new SED::AST::VariableDeclaration())->setType($1)->setVariable(def->getVariable());
@@ -88,21 +95,7 @@ DeclList :
             if (def->getValue() != nullptr) {
                 decl->setValue(def->getValue());
             }else{
-                switch ($1) {
-                    case SED::Enumeration::ValueType::INT_32:
-                        decl->setValue((new SED::AST::Int32()));
-                        break;
-                    case SED::Enumeration::ValueType::FLOAT_32:
-                        decl->setValue((new SED::AST::Float32()));
-                        break;
-                    case SED::Enumeration::ValueType::BOOLEAN:
-                        decl->setValue(new SED::AST::Boolean());
-                        break;
-                    case SED::Enumeration::ValueType::CHAR:
-                        decl->setValue(new SED::AST::Char());
-                    default:
-                        break;
-                }
+                decl->setValue(SED::AST::Constant::createValue($1));
             }
             $$.push_back(decl);
             decl->begin.line = @1.begin.line;
@@ -118,7 +111,6 @@ DeclList :
         $$ = $2;
     }
     ;
-
 Type:
     TYPE_INT { $$ = SED::Enumeration::ValueType::INT_32; }
     | TYPE_FLOAT { $$ = SED::Enumeration::ValueType::FLOAT_32; }
@@ -143,12 +135,39 @@ DefList:
 
 FuncDef:
     Type IDENT LPAREN RPAREN Block {
-        $$ = (new SED::AST::FunctionDefinition())->setDeclaration((new SED::AST::FunctionDeclaration())->setReturnType($1)->setName($2))->setBlock($5);
+        $$ = (new SED::AST::FunctionDefinition())->setDeclaration((new SED::AST::FunctionDeclaration())->setReturnType($1)->setName($2))->setBlock($5)->setParameters(std::vector< SED::AST::VariableDeclaration* >());
         $$->begin.line = @1.begin.line;
         $$->begin.column = @1.begin.column;
         $$->end.line = @5.end.line;
         $$->end.column = @5.end.column;
-    };
+    }
+    | Type IDENT LPAREN FuncFParams RPAREN Block {
+        auto types = std::vector< SED::Enumeration::ValueType >();
+        for (auto decl : $4) {
+            types.push_back(decl->getType());
+        }
+        $$ = (new SED::AST::FunctionDefinition())->setDeclaration((new SED::AST::FunctionDeclaration())->setReturnType($1)->setName($2)->setParameters(types))->setBlock($6)->setParameters($4);
+        $$->begin.line = @1.begin.line;
+        $$->begin.column = @1.begin.column;
+        $$->end.line = @6.end.line;
+        $$->end.column = @6.end.column;
+    }
+    ;
+
+FuncFParams:
+    Type IDENT { 
+        $$ = std::vector< SED::AST::VariableDeclaration* >({(new SED::AST::VariableDeclaration())->setType($1)->setVariable((new SED::AST::Variable())->setName($2))->setValue(SED::AST::Constant::createValue($1))});
+        }
+    ;
+    | Type {
+        $$ = std::vector< SED::AST::VariableDeclaration* >({(new SED::AST::VariableDeclaration())->setType($1)->setVariable((new SED::AST::Variable())->setName(""))->setValue(SED::AST::Constant::createValue($1))});
+    }
+    | FuncFParams COMMA Type {
+        $1.push_back((new SED::AST::VariableDeclaration())->setType($3)->setVariable((new SED::AST::Variable())->setName(""))->setValue(SED::AST::Constant::createValue($3)));
+        $$ = $1;
+    }
+    | FuncFParams COMMA Type IDENT { $1.push_back((new SED::AST::VariableDeclaration())->setType($3)->setVariable((new SED::AST::Variable())->setName($4))->setValue(SED::AST::Constant::createValue($3))); $$ = $1; }
+    ;
 
 Block:
     LBRACE BlockItemList RBRACE {
@@ -157,6 +176,13 @@ Block:
         $$->begin.column = @1.begin.column;
         $$->end.line = @3.end.line;
         $$->end.column = @3.end.column;
+    }
+    | LBRACE RBRACE {
+        $$ = (new SED::AST::Block());
+        $$->begin.line = @1.begin.line;
+        $$->begin.column = @1.begin.column;
+        $$->end.line = @2.end.line;
+        $$->end.column = @2.end.column;
     }
     ;
 
@@ -175,15 +201,33 @@ BlockItemList:
 Stmt:
     Var ASSIGN Exp SEMICOLON {
         $$ = (new SED::AST::Assignment())->setVariable($1)->setValue($3);
+        $$->begin.line = @1.begin.line;
+        $$->begin.column = @1.begin.column;
+        $$->end.line = @4.end.line;
+        $$->end.column = @4.end.column;
     }
     | RETURN Exp SEMICOLON {
         $$ = (new SED::AST::ReturnStatement())->setValue($2);
+        $$->begin.line = @1.begin.line;
+        $$->begin.column = @1.begin.column;
+        $$->end.line = @3.end.line;
+        $$->end.column = @3.end.column;
     }
     | RETURN SEMICOLON {
-        $$ = (new SED::AST::ReturnStatement());
+        $$ = (new SED::AST::ReturnStatement())->setValue(SED::AST::Constant::createValue(SED::Enumeration::ValueType::VOID));
+        $$->begin.line = @1.begin.line;
+        $$->begin.column = @1.begin.column;
+        $$->end.line = @2.end.line;
+        $$->end.column = @2.end.column;
     }
     | Block { $$ = $1; }
-    | Exp SEMICOLON { $$ = $1; }
+    | Exp SEMICOLON { 
+        $$ = (new SED::AST::ExpressionStatement())->setValue($1);
+        $$->begin.line = @1.begin.line;
+        $$->begin.column = @1.begin.column;
+        $$->end.line = @2.end.line;
+        $$->end.column = @2.end.column;
+    }
     | SEMICOLON {}
     | WHILE LPAREN Exp RPAREN Stmt {
         SED::AST::Block* body;
@@ -193,6 +237,10 @@ Stmt:
             body = (new SED::AST::Block())->setNodes(std::vector< SED::AST::Node* >({$5}));
         }
         $$ = (new SED::AST::WhileStatement())->setCondition($3)->setBody(body);
+        $$->begin.line = @1.begin.line;
+        $$->begin.column = @1.begin.column;
+        $$->end.line = @5.end.line;
+        $$->end.column = @5.end.column;
     }
     | IF LPAREN Exp RPAREN Stmt ELSE Stmt { 
         SED::AST::Block* thenBody;
@@ -208,6 +256,10 @@ Stmt:
             elseBody = (new SED::AST::Block())->setNodes(std::vector< SED::AST::Node* >({$7}));
         }
         $$ = (new SED::AST::IfStatement())->setCondition($3)->setThenBody(thenBody)->setElseBody(elseBody);
+        $$->begin.line = @1.begin.line;
+        $$->begin.column = @1.begin.column;
+        $$->end.line = @7.end.line;
+        $$->end.column = @7.end.column;
     }
     | IF LPAREN Exp RPAREN Stmt {
         SED::AST::Block* thenBody;
@@ -217,13 +269,24 @@ Stmt:
             thenBody = (new SED::AST::Block())->setNodes(std::vector< SED::AST::Node* >({$5}));
         }
         $$ = (new SED::AST::IfStatement())->setCondition($3)->setThenBody(thenBody);
+        $$->begin.line = @1.begin.line;
+        $$->begin.column = @1.begin.column;
+        $$->end.line = @5.end.line;
+        $$->end.column = @5.end.column;
     }
-    
     | CONTINUE SEMICOLON {
         $$ = (new SED::AST::ContinueStatement());
+        $$->begin.line = @1.begin.line;
+        $$->begin.column = @1.begin.column;
+        $$->end.line = @2.end.line;
+        $$->end.column = @2.end.column;
     }
     | BREAK SEMICOLON {
         $$ = (new SED::AST::BreakStatement());
+        $$->begin.line = @1.begin.line;
+        $$->begin.column = @1.begin.column;
+        $$->end.line = @2.end.line;
+        $$->end.column = @2.end.column;
     }
     ;
 
@@ -231,7 +294,13 @@ FuncDecl:
     Type IDENT LPAREN RPAREN SEMICOLON {
         $$ = (new SED::AST::FunctionDeclaration())->setReturnType($1)->setName($2);
     }
-    ;
+    | Type IDENT LPAREN FuncFParams RPAREN SEMICOLON {
+        auto types = std::vector< SED::Enumeration::ValueType >();
+        for (auto decl : $4) {
+            types.push_back(decl->getType());
+        }
+        $$ = (new SED::AST::FunctionDeclaration())->setReturnType($1)->setName($2)->setParameters(types);
+    }
 
 Var
     : IDENT { $$ = (new SED::AST::Variable())->setName($1); }
@@ -253,6 +322,14 @@ PrimaryExp:
     | IDENT LPAREN RPAREN { 
         $$ = (new SED::AST::FunctionCall())->setName($1);
     }
+    | IDENT LPAREN FuncRParams RPAREN {
+        $$ = (new SED::AST::FunctionCall())->setName($1)->setArguments($3);
+    }
+    ;
+
+FuncRParams:
+    Exp { $$ = std::vector< SED::AST::Value* >({$1}); }
+    | FuncRParams COMMA Exp { $1.push_back($3); $$ = $1; }
     ;
 
 UNARYOP:
@@ -302,6 +379,7 @@ UnaryExp:
             break;
         }
     }
+    ;
 
 MulExp:
     UnaryExp { $$ = $1; }
@@ -367,6 +445,6 @@ LOrExp:
 %%
 
 void yy::parser::error(const location_type& l, const std::string& m) {
-     driver.error(l, m);
+    driver.error(l, m);
 }
 

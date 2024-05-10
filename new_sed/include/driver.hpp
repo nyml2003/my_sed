@@ -27,10 +27,12 @@ class Driver
     void setOutputFileName(const std::string &outputFileName);
     void setErrorFileName(const std::string &errorFileName);
     void parse();
-    static void error(const yy::location &l, const std::string &m);
+    void error(const yy::location &loc, const std::string &msg);
     void scan_begin(); // 初始化词法分析器, 实现在scanner.l中，主要将sourceFileName和yyin绑定
     void scan_end();   // 释放源代码所在的文件流, 实现在scanner.l中
     yy::location location;
+    yy::location errorLocation;
+    std::string errorMessage;
     AST::CompilationUnit *result{nullptr};
     bool traceScanning;
     bool traceParsing;

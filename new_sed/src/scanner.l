@@ -4,7 +4,7 @@
 #include <cstdlib>
 #include "driver.hpp"
 %}
-%option noyywrap nounput noinput batch debug nodefault
+%option noyywrap nounput noinput batch nodefault
 %{
     yy::parser::symbol_type make_NUMBER_INT(const std::string&s,const yy::parser::location_type& loc, int base);
     yy::parser::symbol_type make_NUMBER_FLOAT(const std::string&s,const yy::parser::location_type& loc);
@@ -19,6 +19,7 @@
     yy::location& loc=driver.location;
     loc.step();
 %}
+"0" {return make_NUMBER_INT(yytext, loc, 10);}
 "," {return yy::parser::make_COMMA(loc);}
 ";" {return yy::parser::make_SEMICOLON(loc);}
 "(" {return yy::parser::make_LPAREN(loc);}
@@ -47,7 +48,7 @@
 "0x"[0-9a-fA-F]+ {return make_NUMBER_INT(yytext, loc, 16);}
 "0b"[01]+ {return make_NUMBER_INT(yytext, loc, 2);}
 "0"[0-7]* {return make_NUMBER_INT(yytext, loc, 8);}
-"0" {return make_NUMBER_INT(yytext, loc, 10);}
+
 "int" {return yy::parser::make_TYPE_INT(loc);}
 "void" {return yy::parser::make_TYPE_VOID(loc);}
 "float" {return yy::parser::make_TYPE_FLOAT(loc);}

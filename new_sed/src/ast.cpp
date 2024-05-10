@@ -109,6 +109,18 @@ void VariableDeclaration::toIR()
 // 文法: type variable = value
 void VariableDeclaration::analyze()
 {
+    if (variable->getName() == "")
+    {
+        for (int i = 0;; i++)
+        {
+            variable->setName(std::to_string(i));
+            if (analyzerContext.exists(variable) == false)
+            {
+                break;
+            }
+        }
+    }
+    analyzerContext.nodeStack.push(this);
     // 如果变量已经存在,则报错
     if (analyzerContext.exists(variable) == true)
     {
@@ -130,12 +142,13 @@ void VariableDeclaration::analyze()
             value = value->constantify();
         }
         // 在context中添加变量,但是不存储value的值
-        analyzerContext.add(variable, Constant::createValue(type));
+        analyzerContext.add(variable->getName(), Constant::createValue(type));
     }
     else
     {
         throw std::runtime_error("VariableDeclaration::analyze() value is nullptr");
     }
+    analyzerContext.nodeStack.pop();
     return;
 }
 
@@ -189,12 +202,14 @@ void Assignment::toIR()
 
 void Assignment::analyze()
 {
+    analyzerContext.nodeStack.push(this);
     // 如果变量不存在,则报错
     if (analyzerContext.exists(variable) == false)
     {
         Error::UndeclaredVariableError(variable->getName()).error();
         return;
     }
+    // 如果变量的类型和value的类型不一致,则报错
     if (analyzerContext.get(variable)->getValueType() != value->getValueType())
     {
         Error::TypeMismatchError(analyzerContext.get(variable)->getValueType(), value->getValueType()).error();
@@ -204,7 +219,7 @@ void Assignment::analyze()
     {
         value = value->constantify();
     }
-    // 如果变量的类型和value的类型不一致,则报错
+    analyzerContext.nodeStack.pop();
 }
 
 /*---------------------BreakStatement---------------------*/
@@ -246,6 +261,12 @@ FunctionDeclaration *FunctionDeclaration::setReturnType(Enumeration::ValueType _
     return this;
 }
 
+FunctionDeclaration *FunctionDeclaration::setParameters(const std::vector<Enumeration::ValueType> &_parameters)
+{
+    parameters = std::move(_parameters);
+    return this;
+}
+
 std::string FunctionDeclaration::getName() const
 {
     return name;
@@ -256,6 +277,11 @@ Enumeration::ValueType FunctionDeclaration::getReturnType() const
     return returnType;
 }
 
+std::vector<Enumeration::ValueType> FunctionDeclaration::getParameters() const
+{
+    return parameters;
+}
+
 void FunctionDeclaration::toMermaid()
 {
     size_t id = getCounter();
@@ -263,6 +289,12 @@ void FunctionDeclaration::toMermaid()
     nextCounter();
     putEdge(id, getCounter(), "name");
     putLabel(name);
+    for (auto &parameter : parameters)
+    {
+        nextCounter();
+        putEdge(id, getCounter(), "parameter");
+        putLabel(parameter);
+    }
     nextCounter();
     putEdge(id, getCounter(), "returnType");
     putLabel(returnType);
@@ -270,16 +302,47 @@ void FunctionDeclaration::toMermaid()
 
 void FunctionDeclaration::toIR()
 {
-    irs.push_back((new IR::Label())->setName(name));
+    ;
 }
 
 void FunctionDeclaration::analyze()
 {
-    if (analyzerContext.exists(name))
+    analyzerContext.nodeStack.push(this);
+    if (analyzerContext.exists(this))
     {
-        Error::FunctionRedeclarationError(name).error();
+        // 检查函数的类型是否一致
+        auto types = analyzerContext.get(this);
+        types.erase(types.begin());
+        if (types.size() != parameters.size())
+        {
+            Error::FunctionCallArgumentCountError(name, types.size(), parameters.size()).error();
+        }
+        for (size_t i = 0; i < types.size(); i++)
+        {
+            if (types[i] != parameters[i])
+            {
+                Error::FunctionCallArgumentTypeError(name, i, types[i], parameters[i]).error();
+            }
+        }
     }
-    analyzerContext.add(name, returnType);
+    else
+    {
+        for (auto &parameter : parameters)
+        {
+            if (parameter == Enumeration::ValueType::VOID)
+            {
+                Error::VoidParameterError(name).error();
+            }
+        }
+        auto types = std::vector<Enumeration::ValueType>({returnType});
+        for (auto &parameter : parameters)
+        {
+            types.push_back(parameter);
+        }
+        analyzerContext.add(name, types);
+    }
+
+    analyzerContext.nodeStack.pop();
 }
 
 /*---------------------ExpressionStatement---------------------*/
@@ -317,10 +380,12 @@ void ExpressionStatement::toIR()
 
 void ExpressionStatement::analyze()
 {
+    analyzerContext.nodeStack.push(this);
     if (value->isConstant())
     {
         value = value->constantify();
     }
+    analyzerContext.nodeStack.pop();
 }
 
 /*---------------------COMPILAION_UNIT---------------------*/
@@ -369,10 +434,12 @@ void CompilationUnit::toIR()
 
 void CompilationUnit::analyze()
 {
+    analyzerContext.nodeStack.push(this);
     for (auto &node : nodes)
     {
         node->analyze();
     }
+    analyzerContext.nodeStack.pop();
 }
 
 /*---------------------Block---------------------*/
@@ -407,19 +474,21 @@ void Block::toMermaid()
 
 void Block::analyze()
 {
+    analyzerContext.nodeStack.push(this);
     analyzerContext.enter();
     for (auto &node : nodes)
     {
         node->analyze();
     }
     analyzerContext.exit();
+    analyzerContext.nodeStack.pop();
 }
 
 void Block::toIR()
 {
-    for (auto &node : nodes)
+    for (size_t i = beginLine; i < nodes.size(); i++)
     {
-        node->toIR();
+        nodes[i]->toIR();
     }
 }
 
@@ -436,6 +505,12 @@ void FunctionDefinition::toMermaid()
     nextCounter();
     putEdge(id, getCounter(), "declaration");
     declaration->toMermaid();
+    for (auto &variableDeclaration : parameters)
+    {
+        nextCounter();
+        putEdge(id, getCounter(), "parameter");
+        variableDeclaration->toMermaid();
+    }
     nextCounter();
     putEdge(id, getCounter(), "block");
     block->toMermaid();
@@ -443,14 +518,49 @@ void FunctionDefinition::toMermaid()
 
 void FunctionDefinition::analyze()
 {
+    analyzerContext.currentFunction = declaration;
+    analyzerContext.nodeStack.push(this);
     declaration->analyze();
+    auto variableDeclarations = std::vector<Node *>(parameters.begin(), parameters.end());
+    auto blockNodes = block->getNodes();
+    block->beginLine = variableDeclarations.size();
+    // 如果函数没有返回值,则添加一个默认的return语句
+    if (blockNodes.size() == 0)
+    {
+        if (declaration->getReturnType() == Enumeration::ValueType::VOID)
+        {
+            blockNodes.push_back(
+                (new ReturnStatement())->setValue(Constant::createValue(Enumeration::ValueType::VOID)));
+        }
+        else
+        {
+            Error::FunctionNoReturnValueError(declaration->getName()).error();
+        }
+    }
+    // 如果函数有返回值,则检查最后一个语句是否是return语句
+    else
+    {
+        auto lastNode = blockNodes[blockNodes.size() - 1];
+        if (lastNode->getNodeClass() != Enumeration::NodeClass::RETURN_STATEMENT)
+        {
+            Error::FunctionNoReturnValueError(declaration->getName()).error();
+        }
+    }
+    variableDeclarations.insert(variableDeclarations.end(), blockNodes.begin(), blockNodes.end());
+    block->setNodes(variableDeclarations);
     block->analyze();
+    analyzerContext.nodeStack.pop();
+    analyzerContext.currentFunction = nullptr;
 }
 
 void FunctionDefinition::toIR()
 {
-    declaration->toIR();
+    irs.push_back((new IR::Label())->setName(declaration->getName()));
     irs.push_back((new IR::Start()));
+    for (auto &variableDeclaration : parameters)
+    {
+        irs.push_back((new IR::Parameter())->setName(variableDeclaration->getVariable()->getName()));
+    }
     block->toIR();
     irs.push_back((new IR::End()));
 }
@@ -479,6 +589,17 @@ Block *FunctionDefinition::getBlock() const
     return block;
 }
 
+FunctionDefinition *FunctionDefinition::setParameters(const std::vector<VariableDeclaration *> &_parameters)
+{
+    parameters = _parameters;
+    return this;
+}
+
+std::vector<VariableDeclaration *> FunctionDefinition::getParameters() const
+{
+    return parameters;
+}
+
 /*---------------------ReturnStatement---------------------*/
 
 ReturnStatement::ReturnStatement() : Node(Enumeration::NodeClass::RETURN_STATEMENT)
@@ -500,14 +621,25 @@ Value *ReturnStatement::getValue() const
 
 void ReturnStatement::analyze()
 {
+    analyzerContext.nodeStack.push(this);
+    auto function = analyzerContext.currentFunction;
     if (value == nullptr)
     {
+        if (function->getReturnType() != Enumeration::ValueType::VOID)
+        {
+            Error::FunctionNoReturnValueError(function->getName()).error();
+        }
         return;
     }
     if (value->isConstant())
     {
         value = value->constantify();
     }
+    if (function->getReturnType() != value->getValueType())
+    {
+        Error::TypeMismatchError(function->getReturnType(), value->getValueType()).error();
+    }
+    analyzerContext.nodeStack.pop();
 }
 
 void ReturnStatement::toMermaid()
@@ -525,6 +657,10 @@ void ReturnStatement::toMermaid()
 
 void ReturnStatement::toIR()
 {
+    if (value->getValueType() == Enumeration::ValueType::VOID)
+    {
+        return;
+    }
     if (value == nullptr)
     {
         irs.push_back((new IR::Return()));
@@ -533,7 +669,7 @@ void ReturnStatement::toIR()
     else
     {
         value->toIR();
-        irs.push_back((new IR::Return())->setVar(registerWrapper(getRegister())));
+        irs.push_back((new IR::Return())->setRegisterSource(getRegister()));
     }
 }
 
@@ -593,12 +729,14 @@ void WhileStatement::toIR()
 
 void WhileStatement::analyze()
 {
+    analyzerContext.nodeStack.push(this);
     if (condition->getValueType() != Enumeration::ValueType::BOOLEAN)
     {
         Error::ConditionNotBoolError(condition->getValueType()).error();
         return;
     }
     body->analyze();
+    analyzerContext.nodeStack.pop();
 }
 
 /*If*/
@@ -663,25 +801,28 @@ void IfStatement::toIR()
 {
     condition->toIR();
     nextLabel();
-    size_t ifz_label = getLabel();
-    irs.push_back((new IR::Ifz())->setRegisterSource(getRegister())->setLabel(ifz_label));
+    size_t thenLabel = getLabel();
+    nextLabel();
+    size_t elseLabel = getLabel();
+    nextLabel();
+    size_t endLabel = getLabel();
+    irs.push_back((new IR::Ifz())->setRegisterSource(getRegister())->setLabel(elseLabel));
+    irs.push_back((new IR::Goto())->setLabel(labelWrapper(thenLabel)));
+    irs.push_back((new IR::Label())->setName(labelWrapper(thenLabel)));
     thenBody->toIR();
+    irs.push_back((new IR::Goto())->setLabel(labelWrapper(endLabel)));
+    irs.push_back((new IR::Label())->setName(labelWrapper(elseLabel)));
     if (elseBody != nullptr)
     {
-        nextLabel();
-        irs.push_back((new IR::Goto())->setLabel(labelWrapper(getLabel())));
-        irs.push_back((new IR::Label())->setName(labelWrapper(ifz_label)));
         elseBody->toIR();
-        irs.push_back((new IR::Label())->setName(labelWrapper(getLabel())));
     }
-    else
-    {
-        irs.push_back((new IR::Label())->setName(labelWrapper(ifz_label)));
-    }
+    irs.push_back((new IR::Goto())->setLabel(labelWrapper(endLabel)));
+    irs.push_back((new IR::Label())->setName(labelWrapper(endLabel)));
 }
 
 void IfStatement::analyze()
 {
+    analyzerContext.nodeStack.push(this);
     if (condition->getValueType() != Enumeration::ValueType::BOOLEAN)
     {
         Error::ConditionNotBoolError(condition->getValueType()).error();
@@ -692,6 +833,7 @@ void IfStatement::analyze()
     {
         elseBody->analyze();
     }
+    analyzerContext.nodeStack.pop();
 }
 
 /*Continue*/

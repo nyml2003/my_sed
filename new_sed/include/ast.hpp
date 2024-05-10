@@ -118,6 +118,7 @@ class BreakStatement : public Node
 class FunctionDeclaration : public Node
 {
   private:
+    std::vector<Enumeration::ValueType> parameters;
     Enumeration::ValueType returnType;
     std::string name;
 
@@ -126,8 +127,10 @@ class FunctionDeclaration : public Node
     /*set, get*/
     FunctionDeclaration *setReturnType(Enumeration::ValueType _returnType);
     FunctionDeclaration *setName(const std::string &_name);
+    FunctionDeclaration *setParameters(const std::vector<Enumeration::ValueType> &_parameters);
     Enumeration::ValueType getReturnType() const;
     std::string getName() const;
+    std::vector<Enumeration::ValueType> getParameters() const;
     /* 对于generator接口的实现 */
     void toMermaid() override;
     void toIR() override;
@@ -176,29 +179,10 @@ class Block : public Node
 
   public:
     explicit Block();
+    size_t beginLine = 0;
     /*set, get*/
     Block *setNodes(const std::vector<Node *> &_nodes);
     std::vector<Node *> getNodes() const;
-    /* 对于generator接口的实现 */
-    void toMermaid() override;
-    void toIR() override;
-    /* 对于analyzer接口的实现 */
-    void analyze() override;
-};
-
-class FunctionDefinition : public Node
-{
-  private:
-    FunctionDeclaration *declaration;
-    Block *block;
-
-  public:
-    explicit FunctionDefinition();
-    /*set, get*/
-    FunctionDefinition *setDeclaration(FunctionDeclaration *_declaration);
-    FunctionDefinition *setBlock(Block *_block);
-    FunctionDeclaration *getDeclaration() const;
-    Block *getBlock() const;
     /* 对于generator接口的实现 */
     void toMermaid() override;
     void toIR() override;
@@ -216,6 +200,30 @@ class ReturnStatement : public Node
     /*set, get*/
     ReturnStatement *setValue(Value *_value);
     Value *getValue() const;
+    /* 对于generator接口的实现 */
+    void toMermaid() override;
+    void toIR() override;
+    /* 对于analyzer接口的实现 */
+    void analyze() override;
+};
+
+class FunctionDefinition : public Node
+{
+  private:
+    FunctionDeclaration *declaration;
+    std::vector<VariableDeclaration *> parameters;
+    Block *block;
+    ReturnStatement *returnStatement;
+
+  public:
+    explicit FunctionDefinition();
+    /*set, get*/
+    FunctionDefinition *setDeclaration(FunctionDeclaration *_declaration);
+    FunctionDefinition *setBlock(Block *_block);
+    FunctionDefinition *setParameters(const std::vector<VariableDeclaration *> &_parameters);
+    FunctionDeclaration *getDeclaration() const;
+    Block *getBlock() const;
+    std::vector<VariableDeclaration *> getParameters() const;
     /* 对于generator接口的实现 */
     void toMermaid() override;
     void toIR() override;

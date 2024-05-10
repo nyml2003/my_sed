@@ -1,5 +1,8 @@
 #include "error.hpp"
+#include "context.hpp"
+#include "driver.hpp"
 #include "value.hpp"
+#include <fstream>
 namespace SED::Error
 {
 
@@ -55,13 +58,131 @@ void Error::warning()
 
 void Error::error()
 {
-    std::cerr << CodeEnumMapToString(code) << ": " << message << std::endl;
+    locate();
+    std::cerr << "| " << CodeEnumMapToString(code) << ": " << message << std::endl;
+    exit(1);
+}
+
+void Error::errorWithLocation(const yy::location &l)
+{
+    std::ifstream targetFile(driver.sourceFileName);
+    std::vector<std::string> lines;
+    std::string line;
+    for (int i = 0; i < l.begin.line - 1; i++)
+    {
+        std::getline(targetFile, line);
+    }
+    for (int i = l.begin.line - 1; i < l.end.line; i++)
+    {
+        std::getline(targetFile, line);
+        lines.push_back(line);
+    }
+    for (size_t i = 0; i < lines.size(); i++)
+    {
+        std::cerr << "|" << lines[i] << std::endl;
+        std::cerr << "|";
+        if (i == 0)
+        {
+            for (int j = 0; j < l.begin.column - 1; j++)
+            {
+                std::cerr << " ";
+            }
+            if (l.begin.line == l.end.line)
+            {
+                for (int j = l.begin.column - 1; j < l.end.column - 1; j++)
+                {
+                    std::cerr << "^";
+                }
+            }
+            else
+            {
+                for (size_t j = l.begin.column - 1; j < lines[i].size(); j++)
+                {
+                    std::cerr << "^";
+                }
+            }
+        }
+        else if (i == lines.size() - 1)
+        {
+            for (int j = 0; j < l.end.column - 1; j++)
+            {
+                std::cerr << "^";
+            }
+        }
+        else
+        {
+            for (size_t j = 0; j < lines[i].size(); j++)
+            {
+                std::cerr << " ";
+            }
+        }
+        std::cerr << std::endl;
+    }
+    std::cerr << "| " << CodeEnumMapToString(code) << ": " << message << std::endl;
     exit(1);
 }
 
 void Error::debug()
 {
     std::cout << "Debug: " << message << std::endl;
+}
+
+void Error::locate()
+{
+    std::ifstream targetFile(driver.sourceFileName);
+    std::vector<std::string> lines;
+    std::string line;
+    AST::Node *node = analyzerContext.nodeStack.top();
+    for (int i = 0; i < node->begin.line - 1; i++)
+    {
+        std::getline(targetFile, line);
+    }
+    for (int i = node->begin.line - 1; i < node->end.line; i++)
+    {
+        std::getline(targetFile, line);
+        lines.push_back(line);
+    }
+    for (size_t i = 0; i < lines.size(); i++)
+    {
+        std::cerr << "|" << lines[i] << std::endl;
+        std::cerr << "|";
+        if (i == 0)
+        {
+            for (int j = 0; j < node->begin.column - 1; j++)
+            {
+                std::cerr << " ";
+            }
+            if (node->begin.line == node->end.line)
+            {
+                for (int j = node->begin.column - 1; j < node->end.column - 1; j++)
+                {
+                    std::cerr << "^";
+                }
+            }
+            else
+            {
+                for (size_t j = node->begin.column - 1; j < lines[i].size(); j++)
+                {
+                    std::cerr << "^";
+                }
+            }
+        }
+        else if (i == lines.size() - 1)
+        {
+            for (int j = 0; j < node->end.column - 1; j++)
+            {
+                std::cerr << "^";
+            }
+        }
+        else
+        {
+            for (size_t j = 0; j < lines[i].size(); j++)
+            {
+                std::cerr << " ";
+            }
+        }
+        std::cerr << std::endl;
+    }
 }
 
 Error::Error(Type type, Code code, std::string message) : type(type), code(code), message(message)
@@ -116,4 +237,45 @@ ConditionNotBoolError::ConditionNotBoolError(Enumeration::ValueType type)
     : Error(Type::ERROR, Code::SEMANTIC_ERROR, "Condition Not Bool: " + errorValueTypeWrapper(type))
 {
 }
+
+FunctionNoReturnValueError::FunctionNoReturnValueError(std::string function)
+    : Error(Type::ERROR, Code::SEMANTIC_ERROR, "Function No Return Value: " + function)
+{
+}
+
+UnexpectedTokenError::UnexpectedTokenError(std::string token)
+    : Error(Type::ERROR, Code::SYNTAX_ERROR, "Unexpected Token: " + token)
+{
+}
+
+VoidParameterError::VoidParameterError(std::string function)
+    : Error(Type::ERROR, Code::SEMANTIC_ERROR, "The type of parameter in function " + function + " can't be void")
+{
+}
+
+FunctionCallArgumentTypeError::FunctionCallArgumentTypeError(std::string function, int index,
+                                                             Enumeration::ValueType actualType,
+                                                             Enumeration::ValueType predictedType)
+    : Error(Type::ERROR, Code::SEMANTIC_ERROR,
+            "The type of argument " + std::to_string(index) + " in function " + function + " is predicted to be " +
+                errorValueTypeWrapper(predictedType) + ", but you provide " + errorValueTypeWrapper(actualType))
+{
+}
+
+FunctionOverloadError::FunctionOverloadError(std::string function)
+    : Error(Type::ERROR, Code::SEMANTIC_ERROR, "Function Overload: " + function)
+{
+}
+
+FunctionCallArgumentCountError::FunctionCallArgumentCountError(std::string function, int predictedCount,
+                                                               int actualCount)
+    : Error(Type::ERROR, Code::SEMANTIC_ERROR,
+            "The number of arguments in function " + function + " is " + std::to_string(predictedCount) +
+                ", but you "
+                "provide " +
+                std::to_string(actualCount))
+
+{
+}
+
 } // namespace SED::Error

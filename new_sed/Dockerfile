@@ -20,7 +20,8 @@ RUN apt-get update && apt-get install -y \
     sudo \
     vim \
     flex \
-    bison
+    bison \
+    llvm
 
 # 创建用户admin,admin
 RUN useradd -m admin && echo "admin:admin" | chpasswd && adduser admin sudo

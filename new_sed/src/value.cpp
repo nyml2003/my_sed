@@ -2299,6 +2299,17 @@ const std::string &FunctionCall::getName() const
     return name;
 }
 
+FunctionCall *FunctionCall::setArguments(const std::vector<Value *> &_arguments)
+{
+    arguments = _arguments;
+    return this;
+}
+
+const std::vector<Value *> &FunctionCall::getArguments() const
+{
+    return arguments;
+}
+
 void FunctionCall::toMermaid()
 {
     size_t functionCall_id = getCounter();
@@ -2307,29 +2318,68 @@ void FunctionCall::toMermaid()
     size_t name_id = getCounter();
     putLabel(name);
     putEdge(functionCall_id, name_id, "name");
+    for (size_t i = 0; i < arguments.size(); i++)
+    {
+        nextCounter();
+        size_t argument_id = getCounter();
+        putLabel("argument " + std::to_string(i));
+        arguments[i]->toMermaid();
+        putEdge(functionCall_id, argument_id, "argument " + std::to_string(i));
+    }
 }
 
 Enumeration::ValueType FunctionCall::getValueType()
 {
-    if (analyzerContext.exists(name))
+    if (analyzerContext.exists(this))
     {
-        return analyzerContext.get(name);
+        return analyzerContext.get(this)[0];
     }
     throw std::runtime_error("Function not found");
 }
 
 void FunctionCall::toIR()
 {
-    ; // TODO
+    std::vector<size_t> argument_ids;
+    for (size_t i = 0; i < arguments.size(); i++)
+    {
+        arguments[i]->toIR();
+        argument_ids.push_back(getRegister());
+    }
+    nextRegister();
+    size_t functionCall_id = getRegister();
+    for (size_t i = 0; i < arguments.size(); i++)
+    {
+        irs.push_back((new IR::Argument())->setRegisterSource(argument_ids[i]));
+    }
+    irs.push_back((new IR::AssignCall())->setRegisterDestination(functionCall_id)->setFunction(name));
 }
 
 bool FunctionCall::isConstant()
 {
+    for (size_t i = 0; i < arguments.size(); i++)
+    {
+        arguments[i]->constantify();
+    }
     return false;
 }
 
 Constant *FunctionCall::constantify()
 {
+    // 比较arguments的类型和函数的参数类型是否一致
+    auto types = analyzerContext.get(this);
+    types.erase(types.begin());
+    if (types.size() != arguments.size())
+    {
+        Error::FunctionCallArgumentCountError(name, types.size(), arguments.size()).error();
+    }
+    for (size_t i = 0; i < arguments.size(); i++)
+    {
+        if (arguments[i]->getValueType() != types[i])
+        {
+            Error::FunctionCallArgumentTypeError(name, i, arguments[i]->getValueType(), types[i]).error();
+        }
+    }
+
     switch (getValueType())
     {
     case Enumeration::ValueType::INT_32:

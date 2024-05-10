@@ -2,6 +2,12 @@
 
 namespace SED::IR
 {
+
+void Statement::output()
+{
+    ;
+}
+
 Var *Var::setName(const std::string &_name)
 {
     name = _name;
@@ -13,7 +19,9 @@ std::string Var::getName() const
 }
 void Var::output()
 {
-    std::cout << "\tvar " << name << std::endl;
+    std::cout << "\tvar " << name;
+    Statement::output();
+    std::cout << std::endl;
 }
 
 Assign *Assign::setLeftValue(const std::string &_leftValue)
@@ -52,7 +60,9 @@ std::string Assign::getRightValue() const
 
 void Assign::output()
 {
-    std::cout << "\t" << leftValue << " = " << rightValue << std::endl;
+    std::cout << "\t" << leftValue << " = " << rightValue;
+    Statement::output();
+    std::cout << std::endl;
 }
 
 Label *Label::setName(const std::string &_name)
@@ -68,7 +78,9 @@ std::string Label::getName() const
 
 void Label::output()
 {
-    std::cout << "label " << name << std::endl;
+    std::cout << "label " << name;
+    Statement::output();
+    std::cout << std::endl;
 }
 
 AssignUnary *AssignUnary::setRegisterSource(size_t _registerSource)
@@ -106,7 +118,9 @@ std::string AssignUnary::getOp() const
 
 void AssignUnary::output()
 {
-    std::cout << "\t%" << registerDestination << " = " << op << " %" << registerSource << std::endl;
+    std::cout << "\t%" << registerDestination << " = " << op << " %" << registerSource;
+    Statement::output();
+    std::cout << std::endl;
 }
 
 AssignBinary *AssignBinary::setRegisterSource(size_t _registerSource)
@@ -156,38 +170,49 @@ void AssignBinary::output()
 {
     std::cout << "\t%" << registerDestination << " = "
               << "%" << registerSource << " " << op << " "
-              << "%" << registerTarget << std::endl;
+              << "%" << registerTarget;
+    Statement::output();
+    std::cout << std::endl;
 }
 
 void Start::output()
 {
-    std::cout << "\tstart" << std::endl;
+    std::cout << "\tstart";
+    Statement::output();
+    std::cout << std::endl;
 }
 
 void End::output()
 {
-    std::cout << "\tend" << std::endl;
+    std::cout << "\tend";
+    Statement::output();
+    std::cout << std::endl;
 }
 
-Return *Return::setVar(const std::string &_var)
+Return *Return::setRegisterSource(size_t _registerSource)
 {
-    var = _var;
+    registerSource = _registerSource;
     return this;
 }
 
-std::string Return::getVar() const
+size_t Return::getRegisterSource() const
 {
-    return var;
+    return registerSource;
 }
 
 void Return::output()
 {
-    std::cout << "\treturn " << var << std::endl;
+    std::cout << "\treturn "
+              << "%" << registerSource;
+    Statement::output();
+    std::cout << std::endl;
 }
 
 void Goto::output()
 {
-    std::cout << "\tgoto " << label << std::endl;
+    std::cout << "\tgoto " << label;
+    Statement::output();
+    std::cout << std::endl;
 }
 
 Goto *Goto::setLabel(const std::string &_label)
@@ -204,7 +229,9 @@ std::string Goto::getLabel() const
 void Ifz::output()
 {
     std::cout << "\tifz "
-              << "%" << registerSource << " goto L" << label << std::endl;
+              << "%" << registerSource << " goto L" << label;
+    Statement::output();
+    std::cout << std::endl;
 }
 
 Ifz *Ifz::setRegisterSource(size_t _registerSource)
@@ -229,4 +256,103 @@ size_t Ifz::getLabel() const
     return label;
 }
 
+Parameter *Parameter::setName(const std::string &_name)
+{
+    name = _name;
+    return this;
+}
+
+std::string Parameter::getName() const
+{
+    return name;
+}
+
+void Parameter::output()
+{
+    std::cout << "\tparameter " << name;
+    Statement::output();
+    std::cout << std::endl;
+}
+
+AssignCall *AssignCall::setRegisterDestination(size_t _registerDestination)
+{
+    registerDestination = _registerDestination;
+    return this;
+}
+
+AssignCall *AssignCall::setFunction(const std::string &_function)
+{
+    function = _function;
+    return this;
+}
+
+size_t AssignCall::getRegisterDestination() const
+{
+    return registerDestination;
+}
+
+std::string AssignCall::getFunction() const
+{
+    return function;
+}
+
+void AssignCall::output()
+{
+    std::cout << "\t%" << registerDestination << " = call " << function;
+    Statement::output();
+    std::cout << std::endl;
+}
+
+Argument *Argument::setRegisterSource(size_t _registerSource)
+{
+    registerSource = _registerSource;
+    return this;
+}
+
+size_t Argument::getRegisterSource() const
+{
+    return registerSource;
+}
+
+void Argument::output()
+{
+    std::cout << "\targument %" << registerSource;
+    Statement::output();
+    std::cout << std::endl;
+}
+
+std::vector<std::vector<Statement *>> splitBasicBlocks(const std::vector<Statement *> &irs)
+{
+    std::vector<std::vector<Statement *>> basicBlocks;
+    std::vector<Statement *> basicBlock;
+    std::map<std::string, size_t> labelToIndex;
+    for (size_t i = 0; i < irs.size(); i++)
+    {
+        if (dynamic_cast<Label *>(irs[i]) != nullptr)
+        {
+            if (!basicBlock.empty())
+            {
+                basicBlocks.push_back(basicBlock);
+                basicBlock.clear();
+            }
+        }
+        basicBlock.push_back(irs[i]);
+    }
+    if (!basicBlock.empty())
+    {
+        basicBlocks.push_back(basicBlock);
+    }
+    return basicBlocks;
+}
+void outputBasicBlocks(const std::vector<std::vector<Statement *>> &basicBlocks)
+{
+    for (size_t i = 0; i < basicBlocks.size(); i++)
+    {
+        std::cout << "Basic Block " << i << std::endl;
+        for (size_t j = 0; j < basicBlocks[i].size(); j++)
+        {
+            basicBlocks[i][j]->output();
+        }
+    }
+}
 } // namespace SED::IR

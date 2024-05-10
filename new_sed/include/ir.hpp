@@ -8,8 +8,9 @@ namespace SED::IR
 {
 class Statement
 {
+
   public:
-    virtual void output() = 0;
+    virtual void output();
 };
 
 class Var : public Statement
@@ -96,11 +97,11 @@ class End : public Statement
 
 class Return : public Statement
 {
-    std::string var;
+    size_t registerSource;
 
   public:
-    Return *setVar(const std::string &_var);
-    std::string getVar() const;
+    Return *setRegisterSource(size_t _registerSource);
+    size_t getRegisterSource() const;
     void output() override;
 };
 
@@ -127,6 +128,44 @@ class Ifz : public Statement
     void output() override;
 };
 
+class Parameter : public Statement
+{
+    std::string name;
+
+  public:
+    Parameter *setName(const std::string &_name);
+    std::string getName() const;
+    void output() override;
+};
+
+class AssignCall : public Statement
+{
+    std::string function;
+    size_t registerDestination;
+
+  public:
+    AssignCall *setFunction(const std::string &_function);
+    AssignCall *setRegisterDestination(size_t _registerDestination);
+    std::string getFunction() const;
+    size_t getRegisterDestination() const;
+    void output() override;
+};
+
+class Argument : public Statement
+{
+    size_t registerSource;
+
+  public:
+    Argument *setRegisterSource(size_t _registerSource);
+    size_t getRegisterSource() const;
+    void output() override;
+};
+
+std::vector<std::vector<Statement *>> splitBasicBlocks(const std::vector<Statement *> &irs);
+
+void outputBasicBlocks(const std::vector<std::vector<Statement *>> &basicBlocks);
+
 }; // namespace SED::IR
-inline std::vector<SED::IR::Statement *> irs;
+inline std::vector<SED::IR::Statement *> irs{new SED::IR::Label()};
+
 #endif // !SED_IR_HPP
